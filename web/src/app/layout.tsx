@@ -1,9 +1,7 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
 import { ModeIndicator } from "@/components/ModeIndicator";
+import { WalletConnect } from "@/components/WalletConnect";
 import "./globals.css";
-
-const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
   title: "Bitget Trading Bot - Dashboard",
@@ -27,7 +25,7 @@ export default function RootLayout({
   return (
     <html lang="en" className="dark">
       <body
-        className={`${inter.className} min-h-screen bg-gray-900 text-white`}
+        className="min-h-screen bg-gray-900 text-white font-sans"
       >
         <div className="flex h-screen overflow-hidden">
           {/* Sidebar Navigation */}
@@ -41,6 +39,12 @@ export default function RootLayout({
               <div className="mb-6">
                 <ModeIndicator />
               </div>
+
+              {/* Wallet Connect */}
+              <div className="mb-6">
+                <WalletConnect />
+              </div>
+
               <div className="space-y-2">
                 <NavLink href="/" icon="📊" label="Dashboard" />
                 <NavLink href="/portfolio" icon="💰" label="Portfolio" />
