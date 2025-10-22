@@ -168,4 +168,30 @@ export class BotWebSocketAdapter {
   public broadcastBotData(botData: any): void {
     this.wsServer.broadcast(botData);
   }
+
+  /**
+   * Handle portfolio transfer request
+   */
+  public async handlePortfolioTransfer(transferRequest: any): Promise<boolean> {
+    try {
+      logger.info("🔄 Portfolio transfer request received:", transferRequest);
+      
+      // For now, we'll simulate the transfer since Bitget API doesn't have direct transfer
+      // In a real implementation, you would call the actual transfer API
+      logger.warn("⚠️ Manual transfer required: Please transfer via Bitget interface");
+      
+      // Broadcast transfer notification
+      this.wsServer.broadcast({
+        type: "transfer_notification",
+        message: `Transfert requis: ${transferRequest.amount} USDT de ${transferRequest.from} vers ${transferRequest.to}`,
+        transferRequest,
+        timestamp: Date.now(),
+      } as any);
+
+      return true; // Assume success for now
+    } catch (error) {
+      logger.error("❌ Portfolio transfer failed:", error);
+      return false;
+    }
+  }
 }

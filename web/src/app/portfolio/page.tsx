@@ -5,6 +5,7 @@ import { useWebSocket } from "@/hooks/useWebSocket";
 import { BotData } from "@/types/bot";
 import { SpotPortfolio } from "@/components/SpotPortfolio";
 import { FuturesPortfolio } from "@/components/FuturesPortfolio";
+import { PortfolioTransfer } from "@/components/PortfolioTransfer";
 
 export default function PortfolioPage() {
   const [botData, setBotData] = useState<BotData | null>(null);
@@ -31,6 +32,29 @@ export default function PortfolioPage() {
   const formatPercentage = (value: number) => {
     const sign = value >= 0 ? "+" : "";
     return `${sign}${value.toFixed(2)}%`;
+  };
+
+  const handleTransfer = async (request: any): Promise<boolean> => {
+    try {
+      // Send transfer request via WebSocket
+      const response = await fetch('/api/transfer', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(request),
+      });
+
+      if (response.ok) {
+        return true;
+      } else {
+        console.error('Transfer failed:', await response.text());
+        return false;
+      }
+    } catch (error) {
+      console.error('Transfer error:', error);
+      return false;
+    }
   };
 
   return (
@@ -64,10 +88,19 @@ export default function PortfolioPage() {
         </div>
       </div>
 
+      {/* Portfolio Transfer Control */}
+      <PortfolioTransfer
+        onTransfer={handleTransfer}
+        spotBalance={botData?.portfolio?.dualPortfolio?.spot?.USDT || 0}
+        futuresBalance={botData?.portfolio?.dualPortfolio?.futures?.USDT || 0}
+      />
+
       {/* Dual Portfolio System */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
         <SpotPortfolio data={botData?.portfolio?.dualPortfolio?.spot || null} />
-        <FuturesPortfolio data={botData?.portfolio?.dualPortfolio?.futures || null} />
+        <FuturesPortfolio
+          data={botData?.portfolio?.dualPortfolio?.futures || null}
+        />
       </div>
 
       {/* Portfolio Overview Cards */}
