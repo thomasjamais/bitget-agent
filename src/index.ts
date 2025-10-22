@@ -116,7 +116,7 @@ class BitgetTradingBot {
 
       // Start WebSocket server for dashboard
       await this.wsAdapter.start();
-      
+
       // Register portfolio control callbacks
       this.wsAdapter.setPortfolioControlCallbacks({
         onAllocateCapital: async (amount: number) => {
@@ -130,9 +130,9 @@ class BitgetTradingBot {
         },
         onSwitchTradingMode: async (mode: string, useTestnet: boolean) => {
           return await this.switchTradingMode(mode, useTestnet);
-        }
+        },
       });
-      
+
       this.logger.info("📊 WebSocket dashboard server started");
 
       this.isRunning = true;
@@ -521,10 +521,14 @@ class BitgetTradingBot {
   private async processPortfolioRebalancing(): Promise<void> {
     try {
       const equity = this.botState.equity.USDT || 0;
-      
+
       // Skip rebalancing if equity is too low
       if (equity < 10) {
-        this.logger.debug(`💡 Skipping portfolio rebalancing - equity too low: $${equity.toFixed(2)}`);
+        this.logger.debug(
+          `💡 Skipping portfolio rebalancing - equity too low: $${equity.toFixed(
+            2
+          )}`
+        );
         return;
       }
 
@@ -533,33 +537,49 @@ class BitgetTradingBot {
       try {
         const positionsResponse = await getPositions(this.rest);
         positions = positionsResponse?.data || [];
-        this.logger.debug(`📊 Retrieved ${positions.length} positions for rebalancing`);
+        this.logger.debug(
+          `📊 Retrieved ${positions.length} positions for rebalancing`
+        );
       } catch (error: any) {
-        this.logger.warn(`⚠️ Could not retrieve positions for rebalancing: ${error.message}`);
-        this.logger.info(`💡 Continuing with empty positions for rebalancing calculation`);
+        this.logger.warn(
+          `⚠️ Could not retrieve positions for rebalancing: ${error.message}`
+        );
+        this.logger.info(
+          `💡 Continuing with empty positions for rebalancing calculation`
+        );
         positions = [];
       }
-      
+
       const currentPrices = new Map<string, number>();
 
       // Collect current prices from market data
       for (const [symbol, bar] of this.marketData) {
         currentPrices.set(symbol, bar.close);
       }
-      
+
       // Add default prices for symbols we track but might not have market data for
       const config = await configManager.getConfig();
       const defaultPrices = {
-        'BTCUSDT': 65000,
-        'ETHUSDT': 2600,
-        'BNBUSDT': 580,
-        'MATICUSDT': 0.42
+        BTCUSDT: 65000,
+        ETHUSDT: 2600,
+        BNBUSDT: 580,
+        MATICUSDT: 0.42,
       };
-      
+
       for (const symbol of config.marketData.symbols) {
-        if (!currentPrices.has(symbol) && defaultPrices[symbol as keyof typeof defaultPrices]) {
-          currentPrices.set(symbol, defaultPrices[symbol as keyof typeof defaultPrices]);
-          this.logger.debug(`💡 Using default price for ${symbol}: $${defaultPrices[symbol as keyof typeof defaultPrices]}`);
+        if (
+          !currentPrices.has(symbol) &&
+          defaultPrices[symbol as keyof typeof defaultPrices]
+        ) {
+          currentPrices.set(
+            symbol,
+            defaultPrices[symbol as keyof typeof defaultPrices]
+          );
+          this.logger.debug(
+            `💡 Using default price for ${symbol}: $${
+              defaultPrices[symbol as keyof typeof defaultPrices]
+            }`
+          );
         }
       }
 
@@ -582,7 +602,10 @@ class BitgetTradingBot {
           rebalanceActions,
           currentPrices
         );
-        this.logger.info({ actionsWithSizes }, `📊 ACTIONS WITH CALCULATED SIZES`);
+        this.logger.info(
+          { actionsWithSizes },
+          `📊 ACTIONS WITH CALCULATED SIZES`
+        );
 
         // Execute rebalancing trades (limit to prevent spam)
         const maxRebalanceTrades = 0; // Disabled automatic rebalancing - use manual dashboard allocation
@@ -593,10 +616,14 @@ class BitgetTradingBot {
             await this.executeRebalanceAction(action, currentPrices);
           }
         } else {
-          this.logger.info("💡 Auto-rebalancing disabled. Use the dashboard to manually allocate capital.");
+          this.logger.info(
+            "💡 Auto-rebalancing disabled. Use the dashboard to manually allocate capital."
+          );
         }
       } else {
-        this.logger.debug("✅ Portfolio is well balanced - no rebalancing needed");
+        this.logger.debug(
+          "✅ Portfolio is well balanced - no rebalancing needed"
+        );
       }
     } catch (error: any) {
       this.logger.error("❌ Error in portfolio rebalancing:");
@@ -605,11 +632,13 @@ class BitgetTradingBot {
         message: error.message,
         code: error.code,
         stack: error.stack,
-        details: error.response?.data || 'No additional details'
+        details: error.response?.data || "No additional details",
       });
-      
+
       // Don't let portfolio rebalancing errors stop the bot
-      this.logger.info("💡 Continuing bot operation despite portfolio rebalancing error");
+      this.logger.info(
+        "💡 Continuing bot operation despite portfolio rebalancing error"
+      );
     }
   }
 
@@ -634,11 +663,15 @@ class BitgetTradingBot {
 
       // Create rebalancing intent with proper USDT amounts
       const usdtAmount = Math.abs(action.amountUSDT);
-      
+
       // Skip trades smaller than minimum
       const minTradeAmount = 5; // Bitget minimum is 5 USDT
       if (usdtAmount < minTradeAmount) {
-        this.logger.debug(`💡 Skipping ${action.symbol} rebalance: ${usdtAmount.toFixed(2)} USDT < ${minTradeAmount} USDT minimum`);
+        this.logger.debug(
+          `💡 Skipping ${action.symbol} rebalance: ${usdtAmount.toFixed(
+            2
+          )} USDT < ${minTradeAmount} USDT minimum`
+        );
         return;
       }
 
@@ -772,11 +805,7 @@ class BitgetTradingBot {
       this.logger.info(`  Balance: $${equity.toFixed(2)} USDT`);
       this.logger.info(`  Uptime: ${uptimeHours}h`);
       this.logger.info(
-        `  Environment: ${
-          this.isTestnetMode()
-            ? "🧪 TESTNET"
-            : "� PRODUCTION"
-        }`
+        `  Environment: ${this.isTestnetMode() ? "🧪 TESTNET" : "� PRODUCTION"}`
       );
       this.logger.info(`  Active Positions: ${this.botState.positions.length}`);
       this.logger.info(`  Daily P&L: $${this.botState.dailyPnL.toFixed(2)}`);
@@ -1121,7 +1150,9 @@ class BitgetTradingBot {
     try {
       // Environment info (use runtime mode)
       const isTestnet = this.isTestnetMode();
-      this.logger.info(`🔧 Environment: ${isTestnet ? "TESTNET" : "PRODUCTION"}`);
+      this.logger.info(
+        `🔧 Environment: ${isTestnet ? "TESTNET" : "PRODUCTION"}`
+      );
 
       // Test 1: Basic API connectivity test with multiple endpoints
       let apiWorking = false;
@@ -1423,7 +1454,10 @@ class BitgetTradingBot {
         uptime,
         equity,
         dailyPnL: this.botState.dailyPnL,
-        environment: (this.isTestnetMode() ? "testnet" : "live").toUpperCase() as "TESTNET" | "LIVE",
+        environment: (this.isTestnetMode()
+          ? "testnet"
+          : "live"
+        ).toUpperCase() as "TESTNET" | "LIVE",
         portfolio,
         aggressiveTrading,
         marketData: marketDataArray,
@@ -1473,154 +1507,178 @@ class BitgetTradingBot {
   /**
    * Portfolio Control Methods for Dashboard Integration
    */
-  
+
   /**
    * Allocate a specific amount of capital to the portfolio for trading
    */
   async allocateCapitalToPortfolio(amount: number): Promise<any> {
     try {
       this.logger.info(`💰 Allocating ${amount} USDT to trading portfolio`);
-      
+
       // Update the portfolio balancer with the new trading capital
       const config = configManager.getConfig();
       if (!config || !config.portfolio) {
-        throw new Error('Portfolio configuration not loaded');
+        throw new Error("Portfolio configuration not loaded");
       }
-      
+
       // Set the trading capital amount
       const tradingCapital = amount;
       this.logger.info(`🎯 Trading capital set to ${tradingCapital} USDT`);
-      
+
       // Calculate simple allocation actions based on targets
       const allocations: any[] = [];
       const minAmount = config.portfolio.minTradeAmount || 10;
       const rejectedAllocations: any[] = [];
-      
-      for (const [symbol, targetPercent] of Object.entries(config.portfolio.targetAllocations)) {
+
+      for (const [symbol, targetPercent] of Object.entries(
+        config.portfolio.targetAllocations
+      )) {
         const targetAmount = tradingCapital * targetPercent;
         if (targetAmount >= minAmount) {
           allocations.push({
             symbol,
-            side: 'BUY',
+            side: "BUY",
             amount: targetAmount,
-            targetPercent
+            targetPercent,
           });
         } else {
           rejectedAllocations.push({
             symbol,
             targetAmount,
             targetPercent,
-            reason: `Amount ${targetAmount.toFixed(2)} USDT < minimum ${minAmount} USDT`
+            reason: `Amount ${targetAmount.toFixed(
+              2
+            )} USDT < minimum ${minAmount} USDT`,
           });
         }
       }
-      
+
       // Log allocation summary
-      this.logger.info(`💰 Capital allocation summary for ${tradingCapital} USDT:`);
+      this.logger.info(
+        `💰 Capital allocation summary for ${tradingCapital} USDT:`
+      );
       this.logger.info(`✅ Approved allocations: ${allocations.length}`);
       this.logger.info({ allocations }, `📊 APPROVED ALLOCATIONS DETAILS`);
       if (rejectedAllocations.length > 0) {
-        this.logger.warn(`❌ Rejected allocations: ${rejectedAllocations.length}`);
-        this.logger.warn({ rejectedAllocations }, `📊 REJECTED ALLOCATIONS DETAILS`);
-        rejectedAllocations.forEach(reject => {
+        this.logger.warn(
+          `❌ Rejected allocations: ${rejectedAllocations.length}`
+        );
+        this.logger.warn(
+          { rejectedAllocations },
+          `📊 REJECTED ALLOCATIONS DETAILS`
+        );
+        rejectedAllocations.forEach((reject) => {
           this.logger.warn(`   ${reject.symbol}: ${reject.reason}`);
         });
       }
-      
+
       if (allocations.length > 0) {
-        this.logger.info(`⚖️ Executing ${allocations.length} allocation trades`);
-        
+        this.logger.info(
+          `⚖️ Executing ${allocations.length} allocation trades`
+        );
+
         // Execute allocation trades
         for (const allocation of allocations) {
           try {
             this.logger.info(`🔥 EXECUTING PORTFOLIO ALLOCATION:`);
-            this.logger.info(`🚀 Opening long position for ${allocation.symbol}: ${allocation.amount} USDT @ leverage 1`);
-            
+            this.logger.info(
+              `🚀 Opening long position for ${allocation.symbol}: ${allocation.amount} USDT @ leverage 1`
+            );
+
             // For Bitget futures, quantity should be in USDT for market orders
             const positionIntent: PositionIntent = {
               symbol: allocation.symbol,
               direction: "long",
               quantity: allocation.amount, // This is correct - USDT amount for market orders
               leverage: 1,
-              orderType: "market" // Ensure market order for immediate execution
+              orderType: "market", // Ensure market order for immediate execution
             };
-            
+
             this.logger.info(`📝 Placing market order with intent:`, {
               symbol: allocation.symbol,
               direction: positionIntent.direction,
               quantity: `${allocation.amount} USDT`,
-              leverage: 1
+              leverage: 1,
             });
-            
+
             const result = await open(this.rest, positionIntent);
-            
-            this.logger.info(`✅ Portfolio allocation trade executed for ${allocation.symbol}:`, {
-              orderId: result.orderId,
-              status: result.status,
-              clientOid: result.clientOid
-            });
-            
+
+            this.logger.info(
+              `✅ Portfolio allocation trade executed for ${allocation.symbol}:`,
+              {
+                orderId: result.orderId,
+                status: result.status,
+                clientOid: result.clientOid,
+              }
+            );
+
             // Add a small delay between trades to avoid rate limits
-            await new Promise(resolve => setTimeout(resolve, 500));
-            
+            await new Promise((resolve) => setTimeout(resolve, 500));
           } catch (error: any) {
-            const errorMsg = `❌ Failed to execute portfolio allocation for ${allocation.symbol}: ${error.message || 'Unknown error'}`;
+            const errorMsg = `❌ Failed to execute portfolio allocation for ${
+              allocation.symbol
+            }: ${error.message || "Unknown error"}`;
             this.logger.error(errorMsg, {
               error: error.message,
               code: error.code,
               symbol: allocation.symbol,
               amount: allocation.amount,
-              fullError: error
+              fullError: error,
             });
-            
+
             // Also broadcast error to dashboard
             if (this.wsAdapter) {
               this.wsAdapter.broadcastBotData({
-                type: 'allocation_error',
+                type: "allocation_error",
                 error: errorMsg,
                 symbol: allocation.symbol,
                 amount: allocation.amount,
-                timestamp: Date.now()
+                timestamp: Date.now(),
               });
             }
           }
         }
-        
+
         return {
           success: true,
           tradingCapital,
           actions: allocations.length,
           allocations,
-          message: `Allocated ${amount} USDT and executed ${allocations.length} allocation trades`
+          message: `Allocated ${amount} USDT and executed ${allocations.length} allocation trades`,
         };
       } else {
-        const minRequiredCapital = Math.max(...Object.values(config.portfolio.targetAllocations).map(p => minAmount / p));
-        const warningMsg = `❌ No allocations possible: ${tradingCapital} USDT too small. Minimum required: ${minRequiredCapital.toFixed(0)} USDT (based on ${minAmount} USDT minimum per trade)`;
-        
+        const minRequiredCapital = Math.max(
+          ...Object.values(config.portfolio.targetAllocations).map(
+            (p) => minAmount / p
+          )
+        );
+        const warningMsg = `❌ No allocations possible: ${tradingCapital} USDT too small. Minimum required: ${minRequiredCapital.toFixed(
+          0
+        )} USDT (based on ${minAmount} USDT minimum per trade)`;
+
         this.logger.warn(warningMsg);
-        
+
         // Broadcast detailed warning to dashboard
         if (this.wsAdapter) {
           this.wsAdapter.broadcastBotData({
-            type: 'allocation_warning',
+            type: "allocation_warning",
             message: warningMsg,
             amount: tradingCapital,
             minRequired: minRequiredCapital,
             rejectedAllocations,
-            timestamp: Date.now()
+            timestamp: Date.now(),
           });
         }
-        
+
         return {
           success: false,
           message: warningMsg,
           minRequiredCapital,
-          rejectedAllocations
+          rejectedAllocations,
         };
       }
-      
     } catch (error) {
-      this.logger.error('❌ Portfolio capital allocation failed:', error);
+      this.logger.error("❌ Portfolio capital allocation failed:", error);
       throw error;
     }
   }
@@ -1630,44 +1688,45 @@ class BitgetTradingBot {
    */
   async triggerManualRebalance(): Promise<any> {
     try {
-      this.logger.info('🎛️ Manually triggering portfolio rebalance');
-      
+      this.logger.info("🎛️ Manually triggering portfolio rebalance");
+
       // Get current positions and equity
       const positions = await getPositions(this.rest);
       await this.updateEquity();
       const totalEquity = this.botState.equity.USDT || 0;
-      
+
       const config = configManager.getConfig();
       if (!config) {
-        throw new Error('Configuration not loaded');
+        throw new Error("Configuration not loaded");
       }
-      
+
       // Calculate current portfolio value from positions
       let portfolioValue = 0;
       const positionMap: Record<string, any> = {};
-      
+
       if (positions.data && Array.isArray(positions.data)) {
         for (const position of positions.data) {
           if (position.total && parseFloat(position.total) > 0) {
             positionMap[position.symbol] = position;
-            portfolioValue += parseFloat(position.unrealizedPL || '0');
+            portfolioValue += parseFloat(position.unrealizedPL || "0");
           }
         }
       }
-      
+
       // Execute rebalancing
       const result = await this.processPortfolioRebalancing();
-      this.logger.info(`🔄 Rebalancing completed with portfolio value: ${portfolioValue}`);
-      
+      this.logger.info(
+        `🔄 Rebalancing completed with portfolio value: ${portfolioValue}`
+      );
+
       return {
         success: true,
         portfolioValue,
-        message: 'Manual rebalancing completed',
-        result
+        message: "Manual rebalancing completed",
+        result,
       };
-      
     } catch (error) {
-      this.logger.error('❌ Manual rebalancing failed:', error);
+      this.logger.error("❌ Manual rebalancing failed:", error);
       throw error;
     }
   }
@@ -1675,34 +1734,40 @@ class BitgetTradingBot {
   /**
    * Update portfolio allocation for a specific symbol
    */
-  async updatePortfolioAllocation(symbol: string, percentage: number): Promise<any> {
+  async updatePortfolioAllocation(
+    symbol: string,
+    percentage: number
+  ): Promise<any> {
     try {
-      this.logger.info(`🎛️ Updating ${symbol} allocation to ${percentage * 100}%`);
-      
+      this.logger.info(
+        `🎛️ Updating ${symbol} allocation to ${percentage * 100}%`
+      );
+
       const config = configManager.getConfig();
       if (!config || !config.portfolio) {
-        throw new Error('Portfolio configuration not loaded');
+        throw new Error("Portfolio configuration not loaded");
       }
-      
+
       // Update the configuration
       config.portfolio.targetAllocations[symbol] = percentage;
-      
+
       // Save the updated configuration (in memory for now)
-      this.logger.info(`✅ Updated ${symbol} target allocation to ${percentage * 100}%`);
-      
+      this.logger.info(
+        `✅ Updated ${symbol} target allocation to ${percentage * 100}%`
+      );
+
       // Trigger rebalancing to reflect the new allocation
       const rebalanceResult = await this.triggerManualRebalance();
-      
+
       return {
         success: true,
         symbol,
         newPercentage: percentage,
         message: `Updated ${symbol} allocation and triggered rebalancing`,
-        rebalanceResult
+        rebalanceResult,
       };
-      
     } catch (error) {
-      this.logger.error('❌ Allocation update failed:', error);
+      this.logger.error("❌ Allocation update failed:", error);
       throw error;
     }
   }
@@ -1712,23 +1777,27 @@ class BitgetTradingBot {
    */
   async switchTradingMode(mode: string, useTestnet: boolean): Promise<any> {
     try {
-      this.logger.info(`🎛️ Switching to ${mode} mode (useTestnet: ${useTestnet})`);
-      
+      this.logger.info(
+        `🎛️ Switching to ${mode} mode (useTestnet: ${useTestnet})`
+      );
+
       // Update runtime configuration without file modification
       this.runtimeConfig.useTestnet = useTestnet;
-      
+
       // Reinitialize the Bitget API client with new mode
       await this.reinitializeBitgetClient(useTestnet);
-      
-      this.logger.info(`✅ Mode switched dynamically: useTestnet = ${useTestnet}`);
+
+      this.logger.info(
+        `✅ Mode switched dynamically: useTestnet = ${useTestnet}`
+      );
       this.logger.info(`🔄 No restart required - change applied immediately`);
-      
+
       return {
         success: true,
         mode,
         useTestnet,
         message: `Mode switched to ${mode} immediately!`,
-        requiresRestart: false
+        requiresRestart: false,
       };
     } catch (error: any) {
       this.logger.error(`❌ Failed to switch trading mode:`, error);
@@ -1741,11 +1810,13 @@ class BitgetTradingBot {
    */
   private async reinitializeBitgetClient(useTestnet: boolean): Promise<void> {
     try {
-      this.logger.info(`🔄 Reinitializing Bitget client (testnet: ${useTestnet})`);
-      
+      this.logger.info(
+        `🔄 Reinitializing Bitget client (testnet: ${useTestnet})`
+      );
+
       // Get API credentials from config
       const config = configManager.getConfig();
-      
+
       // Create new Bitget client with updated mode
       const { rest, ws } = createBitget(
         config.api.key,
@@ -1753,16 +1824,17 @@ class BitgetTradingBot {
         config.api.passphrase,
         useTestnet
       );
-      
+
       // Update the client instances
       this.rest = rest;
       this.ws = ws;
-      
-      this.logger.info(`✅ Bitget client reinitialized (testnet: ${useTestnet})`);
-      
+
+      this.logger.info(
+        `✅ Bitget client reinitialized (testnet: ${useTestnet})`
+      );
+
       // Update the bot state environment indicator
       this.runtimeConfig.useTestnet = useTestnet;
-      
     } catch (error: any) {
       this.logger.error(`❌ Failed to reinitialize Bitget client:`, error);
       throw error;
@@ -1777,7 +1849,7 @@ class BitgetTradingBot {
     if (this.runtimeConfig.useTestnet !== undefined) {
       return this.runtimeConfig.useTestnet;
     }
-    
+
     const config = configManager.getConfig();
     return config.api?.useTestnet ?? true; // Default to testnet for safety
   }

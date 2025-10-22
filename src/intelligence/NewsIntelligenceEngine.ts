@@ -3,10 +3,10 @@
  * Combines geopolitical events, regulatory news, and market sentiment
  */
 
-import { OpenAI } from 'openai';
-import axios from 'axios';
-import cron from 'node-cron';
-import { logger } from '../utils/logger.js';
+import { OpenAI } from "openai";
+import axios from "axios";
+import cron from "node-cron";
+import { logger } from "../utils/logger.js";
 
 export interface NewsEvent {
   id: string;
@@ -15,19 +15,25 @@ export interface NewsEvent {
   source: string;
   publishedAt: Date;
   relevanceScore: number;
-  sentiment: 'bullish' | 'bearish' | 'neutral';
-  impact: 'high' | 'medium' | 'low';
+  sentiment: "bullish" | "bearish" | "neutral";
+  impact: "high" | "medium" | "low";
   affectedSymbols: string[];
   categories: NewsCategory[];
 }
 
 export interface NewsCategory {
-  type: 'regulatory' | 'adoption' | 'technology' | 'geopolitical' | 'economic' | 'institutional';
+  type:
+    | "regulatory"
+    | "adoption"
+    | "technology"
+    | "geopolitical"
+    | "economic"
+    | "institutional";
   confidence: number;
 }
 
 export interface NewsAnalysis {
-  overallSentiment: 'bullish' | 'bearish' | 'neutral';
+  overallSentiment: "bullish" | "bearish" | "neutral";
   confidence: number;
   keyEvents: NewsEvent[];
   marketImpact: {
@@ -70,9 +76,9 @@ export class NewsIntelligenceEngine {
 
   constructor() {
     this.openai = new OpenAI({
-      apiKey: process.env.OPENAI_API_KEY
+      apiKey: process.env.OPENAI_API_KEY,
     });
-    this.perplexityApiKey = process.env.PERPLEXITY_API_KEY || '';
+    this.perplexityApiKey = process.env.PERPLEXITY_API_KEY || "";
   }
 
   /**
@@ -80,14 +86,16 @@ export class NewsIntelligenceEngine {
    */
   async initialize(): Promise<void> {
     try {
-      logger.info('🧠 Initializing News Intelligence Engine...');
+      logger.info("🧠 Initializing News Intelligence Engine...");
 
       if (!process.env.OPENAI_API_KEY) {
-        throw new Error('OPENAI_API_KEY not found in environment variables');
+        throw new Error("OPENAI_API_KEY not found in environment variables");
       }
 
       if (!this.perplexityApiKey) {
-        throw new Error('PERPLEXITY_API_KEY not found in environment variables');
+        throw new Error(
+          "PERPLEXITY_API_KEY not found in environment variables"
+        );
       }
 
       // Test API connections
@@ -97,10 +105,9 @@ export class NewsIntelligenceEngine {
       this.scheduleNewsUpdates();
 
       this.isInitialized = true;
-      logger.info('✅ News Intelligence Engine initialized successfully');
-
+      logger.info("✅ News Intelligence Engine initialized successfully");
     } catch (error) {
-      logger.error('❌ Failed to initialize News Intelligence Engine:', error);
+      logger.error("❌ Failed to initialize News Intelligence Engine:", error);
       throw error;
     }
   }
@@ -112,23 +119,25 @@ export class NewsIntelligenceEngine {
     try {
       // Test OpenAI connection
       await this.openai.chat.completions.create({
-        model: 'gpt-3.5-turbo',
-        messages: [{ role: 'user', content: 'Test connection' }],
-        max_tokens: 5
+        model: "gpt-3.5-turbo",
+        messages: [{ role: "user", content: "Test connection" }],
+        max_tokens: 5,
       });
-      logger.info('✅ OpenAI connection validated');
+      logger.info("✅ OpenAI connection validated");
 
       // Test Perplexity connection (optional)
       try {
-        await this.queryPerplexity('What is Bitcoin?', 50);
-        logger.info('✅ Perplexity connection validated');
+        await this.queryPerplexity("What is Bitcoin?", 50);
+        logger.info("✅ Perplexity connection validated");
       } catch (perplexityError: any) {
-        logger.warn('⚠️ Perplexity connection failed, will use OpenAI only:', perplexityError.message);
+        logger.warn(
+          "⚠️ Perplexity connection failed, will use OpenAI only:",
+          perplexityError.message
+        );
         // Don't throw error, continue with OpenAI only
       }
-
     } catch (error) {
-      logger.error('❌ API connection test failed:', error);
+      logger.error("❌ API connection test failed:", error);
       throw error;
     }
   }
@@ -138,65 +147,70 @@ export class NewsIntelligenceEngine {
    */
   private scheduleNewsUpdates(): void {
     // Update news every 5 minutes - High frequency mode for better market reactivity
-    cron.schedule('*/5 * * * *', async () => {
+    cron.schedule("*/5 * * * *", async () => {
       try {
-        logger.info('🔄 Scheduled news update starting...');
-        const symbols = ['BTCUSDT', 'ETHUSDT', 'BNBUSDT', 'MATICUSDT'];
-        
+        logger.info("🔄 Scheduled news update starting...");
+        const symbols = ["BTCUSDT", "ETHUSDT", "BNBUSDT", "MATICUSDT"];
+
         for (const symbol of symbols) {
-          await this.fetchAndAnalyzeNews(symbol.replace('USDT', ''));
+          await this.fetchAndAnalyzeNews(symbol.replace("USDT", ""));
         }
-        
-        logger.info('✅ Scheduled news update completed');
+
+        logger.info("✅ Scheduled news update completed");
       } catch (error) {
-        logger.error('❌ Scheduled news update failed:', error);
+        logger.error("❌ Scheduled news update failed:", error);
       }
     });
 
-    logger.info('📅 News update scheduler activated (5-minute intervals) - HIGH FREQUENCY MODE');
+    logger.info(
+      "📅 News update scheduler activated (5-minute intervals) - HIGH FREQUENCY MODE"
+    );
   }
 
   /**
    * Query Perplexity for real-time news and analysis
    */
-  private async queryPerplexity(query: string, maxTokens: number = 1000): Promise<string> {
+  private async queryPerplexity(
+    query: string,
+    maxTokens: number = 1000
+  ): Promise<string> {
     try {
       const response = await axios.post(
-        'https://api.perplexity.ai/chat/completions',
+        "https://api.perplexity.ai/chat/completions",
         {
-          model: 'llama-3.1-sonar-large-128k-chat',
+          model: "llama-3.1-sonar-large-128k-chat",
           messages: [
             {
-              role: 'system',
-              content: 'You are a cryptocurrency market analyst. Provide recent news and analysis about crypto markets.'
+              role: "system",
+              content:
+                "You are a cryptocurrency market analyst. Provide recent news and analysis about crypto markets.",
             },
             {
-              role: 'user',
-              content: query
-            }
+              role: "user",
+              content: query,
+            },
           ],
           max_tokens: Math.max(100, maxTokens),
           temperature: 0.2,
-          stream: false
+          stream: false,
         },
         {
           headers: {
-            'Authorization': `Bearer ${this.perplexityApiKey}`,
-            'Content-Type': 'application/json'
-          }
+            Authorization: `Bearer ${this.perplexityApiKey}`,
+            "Content-Type": "application/json",
+          },
         }
       );
 
       const result: PerplexityResponse = response.data;
-      return result.choices[0]?.message?.content || '';
-
+      return result.choices[0]?.message?.content || "";
     } catch (error: any) {
-      logger.warn('⚠️ Perplexity API error (fallback to OpenAI):', {
+      logger.warn("⚠️ Perplexity API error (fallback to OpenAI):", {
         message: error.message,
         status: error.response?.status,
-        data: error.response?.data?.error
+        data: error.response?.data?.error,
       });
-      
+
       // Fallback to OpenAI for news analysis
       return await this.queryOpenAIForNews(query, maxTokens);
     }
@@ -205,27 +219,31 @@ export class NewsIntelligenceEngine {
   /**
    * Query OpenAI as fallback for news analysis
    */
-  private async queryOpenAIForNews(query: string, maxTokens: number): Promise<string> {
+  private async queryOpenAIForNews(
+    query: string,
+    maxTokens: number
+  ): Promise<string> {
     try {
       const completion = await this.openai.chat.completions.create({
-        model: 'gpt-3.5-turbo',
+        model: "gpt-3.5-turbo",
         messages: [
           {
-            role: 'system',
-            content: 'You are a cryptocurrency market analyst. Provide analysis based on your training data about crypto markets, regulations, and major events.'
+            role: "system",
+            content:
+              "You are a cryptocurrency market analyst. Provide analysis based on your training data about crypto markets, regulations, and major events.",
           },
           {
-            role: 'user',
-            content: `${query} Please provide a brief analysis based on general cryptocurrency market knowledge and trends.`
-          }
+            role: "user",
+            content: `${query} Please provide a brief analysis based on general cryptocurrency market knowledge and trends.`,
+          },
         ],
         max_tokens: Math.max(100, maxTokens),
-        temperature: 0.3
+        temperature: 0.3,
       });
-      
-      return completion.choices[0]?.message?.content || 'No analysis available';
+
+      return completion.choices[0]?.message?.content || "No analysis available";
     } catch (error) {
-      logger.error('❌ OpenAI fallback failed:', error);
+      logger.error("❌ OpenAI fallback failed:", error);
       throw error;
     }
   }
@@ -266,21 +284,20 @@ export class NewsIntelligenceEngine {
       logger.info(`✅ News analysis completed for ${symbol}`, {
         sentiment: analysis.overallSentiment,
         confidence: analysis.confidence,
-        keyEvents: analysis.keyEvents.length
+        keyEvents: analysis.keyEvents.length,
       });
 
       return analysis;
-
     } catch (error) {
       logger.error(`❌ Failed to fetch news for ${symbol}:`, error);
-      
+
       // Return neutral analysis on error
       return {
-        overallSentiment: 'neutral',
+        overallSentiment: "neutral",
         confidence: 0,
         keyEvents: [],
         marketImpact: { shortTerm: 0, mediumTerm: 0, longTerm: 0 },
-        recommendations: ['Unable to fetch current news data']
+        recommendations: ["Unable to fetch current news data"],
       };
     }
   }
@@ -288,7 +305,10 @@ export class NewsIntelligenceEngine {
   /**
    * Analyze news impact using OpenAI
    */
-  private async analyzeNewsImpact(symbol: string, newsContent: string): Promise<NewsAnalysis> {
+  private async analyzeNewsImpact(
+    symbol: string,
+    newsContent: string
+  ): Promise<NewsAnalysis> {
     try {
       const prompt = `
         As a professional crypto market analyst, analyze the following news about ${symbol} and provide a structured assessment:
@@ -320,42 +340,53 @@ export class NewsIntelligenceEngine {
       `;
 
       const completion = await this.openai.chat.completions.create({
-        model: 'gpt-4',
-        messages: [{ role: 'user', content: prompt }],
+        model: "gpt-4",
+        messages: [{ role: "user", content: prompt }],
         max_tokens: 800,
-        temperature: 0.3
+        temperature: 0.3,
       });
 
-      const analysisText = completion.choices[0]?.message?.content || '{}';
-      
+      const analysisText = completion.choices[0]?.message?.content || "{}";
+
       try {
         const analysisData = JSON.parse(analysisText);
-        
+
         return {
-          overallSentiment: analysisData.overallSentiment || 'neutral',
+          overallSentiment: analysisData.overallSentiment || "neutral",
           confidence: Math.max(0, Math.min(1, analysisData.confidence || 0)),
           keyEvents: [], // Will be populated from parsed news
           marketImpact: {
-            shortTerm: Math.max(-1, Math.min(1, analysisData.marketImpact?.shortTerm || 0)),
-            mediumTerm: Math.max(-1, Math.min(1, analysisData.marketImpact?.mediumTerm || 0)),
-            longTerm: Math.max(-1, Math.min(1, analysisData.marketImpact?.longTerm || 0))
+            shortTerm: Math.max(
+              -1,
+              Math.min(1, analysisData.marketImpact?.shortTerm || 0)
+            ),
+            mediumTerm: Math.max(
+              -1,
+              Math.min(1, analysisData.marketImpact?.mediumTerm || 0)
+            ),
+            longTerm: Math.max(
+              -1,
+              Math.min(1, analysisData.marketImpact?.longTerm || 0)
+            ),
           },
-          recommendations: analysisData.recommendations || []
+          recommendations: analysisData.recommendations || [],
         };
-
       } catch (parseError) {
-        logger.warn('⚠️ Failed to parse OpenAI analysis response, using fallback');
+        logger.warn(
+          "⚠️ Failed to parse OpenAI analysis response, using fallback"
+        );
         return {
-          overallSentiment: 'neutral',
+          overallSentiment: "neutral",
           confidence: 0.1,
           keyEvents: [],
           marketImpact: { shortTerm: 0, mediumTerm: 0, longTerm: 0 },
-          recommendations: ['Analysis parsing failed - manual review recommended']
+          recommendations: [
+            "Analysis parsing failed - manual review recommended",
+          ],
         };
       }
-
     } catch (error) {
-      logger.error('❌ OpenAI analysis failed:', error);
+      logger.error("❌ OpenAI analysis failed:", error);
       throw error;
     }
   }
@@ -377,12 +408,16 @@ export class NewsIntelligenceEngine {
     }
 
     // Convert sentiment to multiplier
-    const sentimentMultiplier = analysis.overallSentiment === 'bullish' ? 1.2 :
-                               analysis.overallSentiment === 'bearish' ? 0.8 : 1.0;
+    const sentimentMultiplier =
+      analysis.overallSentiment === "bullish"
+        ? 1.2
+        : analysis.overallSentiment === "bearish"
+        ? 0.8
+        : 1.0;
 
     // Weight by confidence and short-term impact
-    const impactWeight = 1 + (analysis.marketImpact.shortTerm * 0.3);
-    const confidenceWeight = 0.7 + (analysis.confidence * 0.3);
+    const impactWeight = 1 + analysis.marketImpact.shortTerm * 0.3;
+    const confidenceWeight = 0.7 + analysis.confidence * 0.3;
 
     return sentimentMultiplier * impactWeight * confidenceWeight;
   }
@@ -392,39 +427,50 @@ export class NewsIntelligenceEngine {
    */
   async generateIntelligenceReport(symbols: string[]): Promise<string> {
     try {
-      const analyses = symbols.map(symbol => ({
-        symbol,
-        analysis: this.getLatestAnalysis(symbol)
-      })).filter(item => item.analysis !== null);
+      const analyses = symbols
+        .map((symbol) => ({
+          symbol,
+          analysis: this.getLatestAnalysis(symbol),
+        }))
+        .filter((item) => item.analysis !== null);
 
       if (analyses.length === 0) {
-        return '📰 No recent news analysis available';
+        return "📰 No recent news analysis available";
       }
 
-      let report = '🌍 GEOPOLITICAL & NEWS INTELLIGENCE REPORT\n';
-      report += '══════════════════════════════════════════\n\n';
+      let report = "🌍 GEOPOLITICAL & NEWS INTELLIGENCE REPORT\n";
+      report += "══════════════════════════════════════════\n\n";
 
       for (const { symbol, analysis } of analyses) {
         if (!analysis) continue;
 
-        const sentimentEmoji = analysis.overallSentiment === 'bullish' ? '🟢' :
-                              analysis.overallSentiment === 'bearish' ? '🔴' : '🟡';
+        const sentimentEmoji =
+          analysis.overallSentiment === "bullish"
+            ? "🟢"
+            : analysis.overallSentiment === "bearish"
+            ? "🔴"
+            : "🟡";
 
         report += `${sentimentEmoji} ${symbol}:\n`;
-        report += `   Sentiment: ${analysis.overallSentiment.toUpperCase()} (${(analysis.confidence * 100).toFixed()}% confidence)\n`;
-        report += `   Impact: ST:${analysis.marketImpact.shortTerm.toFixed(2)} MT:${analysis.marketImpact.mediumTerm.toFixed(2)} LT:${analysis.marketImpact.longTerm.toFixed(2)}\n`;
-        
+        report += `   Sentiment: ${analysis.overallSentiment.toUpperCase()} (${(
+          analysis.confidence * 100
+        ).toFixed()}% confidence)\n`;
+        report += `   Impact: ST:${analysis.marketImpact.shortTerm.toFixed(
+          2
+        )} MT:${analysis.marketImpact.mediumTerm.toFixed(
+          2
+        )} LT:${analysis.marketImpact.longTerm.toFixed(2)}\n`;
+
         if (analysis.recommendations.length > 0) {
           report += `   Key: ${analysis.recommendations[0]}\n`;
         }
-        report += '\n';
+        report += "\n";
       }
 
       return report;
-
     } catch (error) {
-      logger.error('❌ Failed to generate intelligence report:', error);
-      return '❌ Intelligence report generation failed';
+      logger.error("❌ Failed to generate intelligence report:", error);
+      return "❌ Intelligence report generation failed";
     }
   }
 
@@ -442,9 +488,12 @@ export class NewsIntelligenceEngine {
     return {
       initialized: this.isInitialized,
       cachedSymbols: this.lastAnalysis.size,
-      lastUpdate: Array.from(this.lastAnalysis.entries()).reduce((latest, [symbol, analysis]) => {
-        return latest; // Would need timestamp in analysis
-      }, 'Unknown')
+      lastUpdate: Array.from(this.lastAnalysis.entries()).reduce(
+        (latest, [symbol, analysis]) => {
+          return latest; // Would need timestamp in analysis
+        },
+        "Unknown"
+      ),
     };
   }
 }

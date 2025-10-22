@@ -3,8 +3,8 @@
  * Maintains target allocations across multiple cryptocurrencies
  */
 
-import { logger } from '../utils/logger.js';
-import { configManager } from '../config/manager.js';
+import { logger } from "../utils/logger.js";
+import { configManager } from "../config/manager.js";
 
 export interface PortfolioConfig {
   symbols: string[];
@@ -26,7 +26,7 @@ export interface PortfolioPosition {
 
 export interface RebalanceAction {
   symbol: string;
-  action: 'buy' | 'sell';
+  action: "buy" | "sell";
   targetQuantity: number;
   currentQuantity: number;
   amountUSDT: number;
@@ -38,23 +38,21 @@ export class PortfolioBalancer {
   private config: PortfolioConfig;
   private lastRebalance = 0;
   private positions: Map<string, PortfolioPosition> = new Map();
-  private readonly logger = logger.child({ component: 'PortfolioBalancer' });
+  private readonly logger = logger.child({ component: "PortfolioBalancer" });
 
   constructor() {
     this.config = {
-      symbols: [
-        'BTCUSDT', 'ETHUSDT', 'BNBUSDT', 'MATICUSDT'
-      ],
+      symbols: ["BTCUSDT", "ETHUSDT", "BNBUSDT", "MATICUSDT"],
       targetAllocations: {
-        'BTCUSDT': 0.30,    // 30% - King of crypto
-        'ETHUSDT': 0.25,    // 25% - Smart contracts leader  
-        'BNBUSDT': 0.42,    // 42% - Exchange ecosystem
-        'MATICUSDT': 0.03   // 3% - Polygon scaling
+        BTCUSDT: 0.3, // 30% - King of crypto
+        ETHUSDT: 0.25, // 25% - Smart contracts leader
+        BNBUSDT: 0.42, // 42% - Exchange ecosystem
+        MATICUSDT: 0.03, // 3% - Polygon scaling
       },
       rebalanceThreshold: 0.05, // 5% deviation triggers rebalance
-      minTradeAmount: 10,       // Minimum $10 USDT trade
-      maxTradeAmount: 1000,     // Maximum $1000 USDT per rebalance trade
-      rebalanceInterval: 6      // Rebalance every 6 hours max
+      minTradeAmount: 10, // Minimum $10 USDT trade
+      maxTradeAmount: 1000, // Maximum $1000 USDT per rebalance trade
+      rebalanceInterval: 6, // Rebalance every 6 hours max
     };
   }
 
@@ -64,20 +62,21 @@ export class PortfolioBalancer {
   async loadConfig(): Promise<void> {
     try {
       const botConfig = await configManager.getConfig();
-      
+
       // Override with config file settings if available
       if ((botConfig as any).portfolio) {
         this.config = { ...this.config, ...(botConfig as any).portfolio };
       }
 
-      this.logger.info('📊 Portfolio balancer configured:', {
+      this.logger.info("📊 Portfolio balancer configured:", {
         symbols: this.config.symbols.length,
-        rebalanceThreshold: `${(this.config.rebalanceThreshold * 100).toFixed(1)}%`,
-        interval: `${this.config.rebalanceInterval}h`
+        rebalanceThreshold: `${(this.config.rebalanceThreshold * 100).toFixed(
+          1
+        )}%`,
+        interval: `${this.config.rebalanceInterval}h`,
       });
-
     } catch (error) {
-      this.logger.error('❌ Failed to load portfolio config:', error);
+      this.logger.error("❌ Failed to load portfolio config:", error);
     }
   }
 
@@ -108,23 +107,26 @@ export class PortfolioBalancer {
         markPrice: price,
         unrealizedPnl: pos.unrealizedPnl || 0,
         percentage,
-        valueUSDT
+        valueUSDT,
       });
     }
 
-    this.logger.debug('📊 Portfolio positions updated:', {
+    this.logger.debug("📊 Portfolio positions updated:", {
       totalValue: `$${totalValue.toFixed(2)}`,
-      positions: this.positions.size
+      positions: this.positions.size,
     });
   }
 
   /**
    * Check if rebalancing is needed and generate actions
    */
-  async evaluateRebalancing(totalEquityUSDT: number): Promise<RebalanceAction[]> {
+  async evaluateRebalancing(
+    totalEquityUSDT: number
+  ): Promise<RebalanceAction[]> {
     try {
       const now = Date.now();
-      const hoursSinceLastRebalance = (now - this.lastRebalance) / (1000 * 60 * 60);
+      const hoursSinceLastRebalance =
+        (now - this.lastRebalance) / (1000 * 60 * 60);
 
       // Don't rebalance too frequently
       if (hoursSinceLastRebalance < this.config.rebalanceInterval) {
@@ -139,30 +141,35 @@ export class PortfolioBalancer {
         const targetAllocation = this.config.targetAllocations[symbol] || 0;
         const currentPosition = this.positions.get(symbol);
         const currentAllocation = currentPosition?.percentage || 0;
-        
+
         const deviation = Math.abs(currentAllocation - targetAllocation);
-        
+
         if (deviation > this.config.rebalanceThreshold) {
           needsRebalancing = true;
-          
+
           const targetValueUSDT = totalEquityUSDT * targetAllocation;
           const currentValueUSDT = currentPosition?.valueUSDT || 0;
           const differenceUSDT = targetValueUSDT - currentValueUSDT;
-          
+
           const action: RebalanceAction = {
             symbol,
-            action: differenceUSDT > 0 ? 'buy' : 'sell',
+            action: differenceUSDT > 0 ? "buy" : "sell",
             targetQuantity: 0, // Will be calculated later with current price
             currentQuantity: currentPosition?.quantity || 0,
             amountUSDT: Math.abs(differenceUSDT),
             priority: deviation / this.config.rebalanceThreshold, // Higher deviation = higher priority
-            reason: `${(deviation * 100).toFixed(1)}% deviation from target (${(targetAllocation * 100).toFixed(1)}%)`
+            reason: `${(deviation * 100).toFixed(1)}% deviation from target (${(
+              targetAllocation * 100
+            ).toFixed(1)}%)`,
           };
 
           // Only include if trade amount is meaningful
           if (action.amountUSDT >= this.config.minTradeAmount) {
             // Cap trade amount to maximum
-            action.amountUSDT = Math.min(action.amountUSDT, this.config.maxTradeAmount);
+            action.amountUSDT = Math.min(
+              action.amountUSDT,
+              this.config.maxTradeAmount
+            );
             actions.push(action);
           }
         }
@@ -170,26 +177,29 @@ export class PortfolioBalancer {
 
       if (needsRebalancing) {
         this.lastRebalance = now;
-        
+
         // Sort by priority (highest deviation first)
         actions.sort((a, b) => b.priority - a.priority);
 
         this.logger.info(`⚖️ Portfolio rebalancing needed:`, {
           actions: actions.length,
           totalValue: `$${totalEquityUSDT.toFixed(2)}`,
-          hoursSinceLast: hoursSinceLastRebalance.toFixed(1)
+          hoursSinceLast: hoursSinceLastRebalance.toFixed(1),
         });
 
         // Log each action
-        actions.forEach(action => {
-          this.logger.info(`  ${action.action.toUpperCase()} ${action.symbol}: $${action.amountUSDT.toFixed(2)} (${action.reason})`);
+        actions.forEach((action) => {
+          this.logger.info(
+            `  ${action.action.toUpperCase()} ${
+              action.symbol
+            }: $${action.amountUSDT.toFixed(2)} (${action.reason})`
+          );
         });
       }
 
       return actions;
-
     } catch (error) {
-      this.logger.error('❌ Error evaluating rebalancing:', error);
+      this.logger.error("❌ Error evaluating rebalancing:", error);
       return [];
     }
   }
@@ -197,14 +207,21 @@ export class PortfolioBalancer {
   /**
    * Calculate optimal trade sizes for rebalancing
    */
-  calculateTradeSizes(actions: RebalanceAction[], currentPrices: Map<string, number>): RebalanceAction[] {
-    return actions.map(action => {
+  calculateTradeSizes(
+    actions: RebalanceAction[],
+    currentPrices: Map<string, number>
+  ): RebalanceAction[] {
+    return actions.map((action) => {
       const price = currentPrices.get(action.symbol) || 1;
-      
-      if (action.action === 'buy') {
-        action.targetQuantity = action.currentQuantity + (action.amountUSDT / price);
+
+      if (action.action === "buy") {
+        action.targetQuantity =
+          action.currentQuantity + action.amountUSDT / price;
       } else {
-        action.targetQuantity = Math.max(0, action.currentQuantity - (action.amountUSDT / price));
+        action.targetQuantity = Math.max(
+          0,
+          action.currentQuantity - action.amountUSDT / price
+        );
       }
 
       return action;
@@ -215,8 +232,8 @@ export class PortfolioBalancer {
    * Get portfolio allocation report
    */
   getPortfolioReport(): string {
-    let report = '📊 PORTFOLIO ALLOCATION REPORT\n';
-    report += '═══════════════════════════════════════\n';
+    let report = "📊 PORTFOLIO ALLOCATION REPORT\n";
+    report += "═══════════════════════════════════════\n";
 
     let totalValue = 0;
     for (const position of this.positions.values()) {
@@ -230,12 +247,20 @@ export class PortfolioBalancer {
       const position = this.positions.get(symbol);
       const current = position?.percentage || 0;
       const deviation = current - target;
-      const status = Math.abs(deviation) > this.config.rebalanceThreshold ? 
-        (deviation > 0 ? '🔴 OVERWEIGHT' : '🟡 UNDERWEIGHT') : '🟢 BALANCED';
+      const status =
+        Math.abs(deviation) > this.config.rebalanceThreshold
+          ? deviation > 0
+            ? "🔴 OVERWEIGHT"
+            : "🟡 UNDERWEIGHT"
+          : "🟢 BALANCED";
 
       report += `${symbol}:\n`;
-      report += `  Current: ${(current * 100).toFixed(1)}% | Target: ${(target * 100).toFixed(1)}% | ${status}\n`;
-      report += `  Value: $${(position?.valueUSDT || 0).toFixed(2)} | Deviation: ${(deviation * 100).toFixed(1)}%\n\n`;
+      report += `  Current: ${(current * 100).toFixed(1)}% | Target: ${(
+        target * 100
+      ).toFixed(1)}% | ${status}\n`;
+      report += `  Value: $${(position?.valueUSDT || 0).toFixed(
+        2
+      )} | Deviation: ${(deviation * 100).toFixed(1)}%\n\n`;
     }
 
     return report;
@@ -245,48 +270,58 @@ export class PortfolioBalancer {
    * Get rebalancing recommendations
    */
   getRebalancingRecommendations(totalEquityUSDT: number): string {
-    let report = '⚖️ REBALANCING RECOMMENDATIONS\n';
-    report += '═══════════════════════════════════════\n';
+    let report = "⚖️ REBALANCING RECOMMENDATIONS\n";
+    report += "═══════════════════════════════════════\n";
 
     const imbalanced = [];
-    
+
     for (const symbol of this.config.symbols) {
       const target = this.config.targetAllocations[symbol] || 0;
       const position = this.positions.get(symbol);
       const current = position?.percentage || 0;
       const deviation = Math.abs(current - target);
-      
+
       if (deviation > this.config.rebalanceThreshold) {
         const targetValue = totalEquityUSDT * target;
         const currentValue = position?.valueUSDT || 0;
         const difference = targetValue - currentValue;
-        
+
         imbalanced.push({
           symbol,
           deviation,
-          action: difference > 0 ? 'BUY' : 'SELL',
-          amount: Math.abs(difference)
+          action: difference > 0 ? "BUY" : "SELL",
+          amount: Math.abs(difference),
         });
       }
     }
 
     if (imbalanced.length === 0) {
-      report += '✅ Portfolio is well balanced - no rebalancing needed\n';
+      report += "✅ Portfolio is well balanced - no rebalancing needed\n";
     } else {
       report += `🎯 ${imbalanced.length} positions need rebalancing:\n\n`;
-      
+
       imbalanced
         .sort((a, b) => b.deviation - a.deviation)
-        .forEach(item => {
-          report += `${item.action} ${item.symbol}: $${item.amount.toFixed(2)}\n`;
-          report += `  Deviation: ${(item.deviation * 100).toFixed(1)}% from target\n\n`;
+        .forEach((item) => {
+          report += `${item.action} ${item.symbol}: $${item.amount.toFixed(
+            2
+          )}\n`;
+          report += `  Deviation: ${(item.deviation * 100).toFixed(
+            1
+          )}% from target\n\n`;
         });
     }
 
-    const nextRebalance = this.lastRebalance + (this.config.rebalanceInterval * 60 * 60 * 1000);
-    const hoursUntilNext = Math.max(0, (nextRebalance - Date.now()) / (1000 * 60 * 60));
-    
-    report += `⏰ Next rebalancing window: ${hoursUntilNext.toFixed(1)} hours\n`;
+    const nextRebalance =
+      this.lastRebalance + this.config.rebalanceInterval * 60 * 60 * 1000;
+    const hoursUntilNext = Math.max(
+      0,
+      (nextRebalance - Date.now()) / (1000 * 60 * 60)
+    );
+
+    report += `⏰ Next rebalancing window: ${hoursUntilNext.toFixed(
+      1
+    )} hours\n`;
 
     return report;
   }
@@ -296,14 +331,19 @@ export class PortfolioBalancer {
    */
   updateTargetAllocations(newAllocations: Record<string, number>): void {
     // Validate allocations sum to 1.0
-    const total = Object.values(newAllocations).reduce((sum, weight) => sum + weight, 0);
-    
+    const total = Object.values(newAllocations).reduce(
+      (sum, weight) => sum + weight,
+      0
+    );
+
     if (Math.abs(total - 1.0) > 0.01) {
-      throw new Error(`Target allocations must sum to 1.0, got ${total.toFixed(3)}`);
+      throw new Error(
+        `Target allocations must sum to 1.0, got ${total.toFixed(3)}`
+      );
     }
 
     this.config.targetAllocations = { ...newAllocations };
-    this.logger.info('🎯 Target allocations updated:', newAllocations);
+    this.logger.info("🎯 Target allocations updated:", newAllocations);
   }
 
   /**
@@ -318,6 +358,6 @@ export class PortfolioBalancer {
    */
   updateConfig(newConfig: Partial<PortfolioConfig>): void {
     this.config = { ...this.config, ...newConfig };
-    this.logger.info('⚙️ Portfolio balancer config updated');
+    this.logger.info("⚙️ Portfolio balancer config updated");
   }
 }

@@ -41,11 +41,11 @@ export const open = async (rest: RestClientV2, intent: PositionIntent) => {
       productType: "USDT-FUTURES" as const,
       symbol: intent.symbol,
       marginCoin,
-      marginMode: "isolated" as const, // Use isolated for unilateral position mode
+      marginMode: "crossed" as const, // Use crossed mode for standard orders
       size: formattedSize, // USDT amount for market orders, formatted to 2 decimals
       side,
       orderType: (intent.orderType === "limit" ? "limit" : "market") as "market" | "limit",
-      holdSide: intent.direction as "long" | "short", // Required for unilateral position mode
+      // Remove holdSide for crossed mode - it's only needed for isolated unilateral positions
       ...(intent.reduceOnly && { reduceOnly: "YES" as const }),
       ...(intent.orderType === "limit" && intent.price && { price: String(intent.price) }),
       clientOid: `bot_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
@@ -57,8 +57,7 @@ export const open = async (rest: RestClientV2, intent: PositionIntent) => {
       formattedSize,
       side,
       orderType: orderParams.orderType,
-      marginMode: orderParams.marginMode,
-      holdSide: orderParams.holdSide
+      marginMode: orderParams.marginMode
     }, `📊 Order Details for ${intent.symbol}`);
     
     logger.info({ orderParams }, `📝 Submitting order`);
@@ -125,11 +124,11 @@ export const close = async (rest: RestClientV2, symbol: string, quantity: number
       productType: "USDT-FUTURES" as const,
       symbol,
       marginCoin: "USDT",
-      marginMode: "isolated" as const, // Use isolated for unilateral position mode
+      marginMode: "crossed" as const, // Use crossed mode for standard orders
       size: String(quantity),
       side,
       orderType: "market" as const,
-      holdSide: (side === "buy" ? "long" : "short") as "long" | "short", // Required for unilateral position mode
+      // Remove holdSide for crossed mode
       reduceOnly: "YES" as const,
       clientOid: `close_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
     };
@@ -169,7 +168,7 @@ export const placeStopOrders = async (rest: RestClientV2, intent: PositionIntent
         size: String(intent.quantity),
         side: intent.direction === "long" ? "sell" : "buy",
         triggerType: "fill_price" as const,
-        holdSide: (intent.direction === "long" ? "long" : "short") as "long" | "short",
+        holdSide: (intent.direction === "long" ? "long" : "short") as "long" | "short", // TP/SL require holdSide
         clientOid: `sl_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
       };
       
@@ -190,7 +189,7 @@ export const placeStopOrders = async (rest: RestClientV2, intent: PositionIntent
         size: String(intent.quantity),
         side: intent.direction === "long" ? "sell" : "buy",
         triggerType: "fill_price" as const,
-        holdSide: (intent.direction === "long" ? "long" : "short") as "long" | "short",
+        holdSide: (intent.direction === "long" ? "long" : "short") as "long" | "short", // TP/SL require holdSide
         clientOid: `tp_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
       };
       

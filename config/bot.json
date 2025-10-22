@@ -52,11 +52,11 @@
       "name": "Altcoin Swing Trading",
       "description": "Medium-term swing trades on major altcoins",
       "enabled": true,
-    "symbols": [
-      "ETHUSDT",
-      "BNBUSDT",
-      "MATICUSDT"
-    ],
+      "symbols": [
+        "ETHUSDT",
+        "BNBUSDT",
+        "MATICUSDT"
+      ],
       "timeframes": [
         "15m",
         "1h"
