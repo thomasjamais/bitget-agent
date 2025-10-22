@@ -16,28 +16,8 @@ export const open = async (rest: RestClientV2, intent: PositionIntent) => {
       `🚀 Opening ${intent.direction} position for ${intent.symbol}: ${intent.quantity} @ leverage ${leverage}`
     );
 
-    // 1. Set leverage first
-    try {
-      await rest.setFuturesLeverage({
-        productType: "USDT-FUTURES" as const,
-        symbol: intent.symbol,
-        marginCoin,
-        leverage,
-        holdSide: intent.direction === "long" ? "long" : "short",
-      });
-      logger.info(`✅ Leverage set to ${leverage}x for ${intent.symbol}`);
-    } catch (leverageError: any) {
-      // Leverage might already be set, continue if it's just a "no change" error
-      if (
-        !leverageError.message?.includes("leverage") &&
-        !leverageError.message?.includes("40008")
-      ) {
-        throw leverageError;
-      }
-      logger.warn(
-        `Leverage setting skipped (may already be set): ${leverageError.message}`
-      );
-    }
+    // Skip leverage setting for spot trading
+    logger.info(`📊 Using spot trading (no leverage needed)`);
 
     // 2. Place the main order
     const isMarketOrder = !intent.orderType || intent.orderType === "market";
@@ -45,42 +25,18 @@ export const open = async (rest: RestClientV2, intent: PositionIntent) => {
     // Format the size properly - for market orders it should be USDT amount
     const formattedSize = Number(intent.quantity).toFixed(2);
 
-    // Get current market price for limit orders
-    let currentPrice = 0;
-    if (!intent.price) {
-      try {
-        const ticker = await rest.getFuturesTicker({ 
-          symbol: intent.symbol,
-          productType: "USDT-FUTURES" as const
-        });
-        currentPrice = parseFloat(ticker.data[0]?.lastPr || "0");
-        logger.info(`📊 Current price for ${intent.symbol}: $${currentPrice}`);
-      } catch (priceError) {
-        logger.warn(
-          `⚠️ Could not get current price for ${intent.symbol}, using default`
-        );
-        // Use default prices based on symbol
-        const defaultPrices: Record<string, number> = {
-          BTCUSDT: 65000,
-          ETHUSDT: 2600,
-          BNBUSDT: 580,
-          MATICUSDT: 0.42,
-        };
-        currentPrice = defaultPrices[intent.symbol] || 100;
-      }
-    }
+    // Skip price fetching for spot market orders
+    logger.info(`📊 Using spot market orders (no price needed)`);
 
+    // Try using spot API instead of futures to avoid unilateral position issues
     const orderParams = {
-      productType: "USDT-FUTURES" as const,
+      productType: "SPOT" as const,
       symbol: intent.symbol,
       marginCoin,
-      marginMode: "crossed" as const, // Use crossed mode to avoid unilateral position issues
       size: formattedSize, // USDT amount for market orders, formatted to 2 decimals
       side,
-      orderType: "limit" as const, // Use limit orders to avoid market order issues
-      price: String(intent.price || currentPrice), // Use provided price or current market price
-      // Remove holdSide completely for crossed mode
-      ...(intent.reduceOnly && { reduceOnly: "YES" as const }),
+      orderType: "market" as const, // Use market orders for spot trading
+      force: "gtc" as const, // Required for spot orders
       clientOid: `bot_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
     };
 
@@ -91,13 +47,13 @@ export const open = async (rest: RestClientV2, intent: PositionIntent) => {
         formattedSize,
         side,
         orderType: orderParams.orderType,
-        marginMode: orderParams.marginMode,
+        productType: orderParams.productType,
       },
       `📊 Order Details for ${intent.symbol}`
     );
 
     logger.info({ orderParams }, `📝 Submitting order`);
-    const orderResult = await rest.futuresSubmitOrder(orderParams);
+    const orderResult = await rest.spotSubmitOrder(orderParams);
 
     logger.info(`✅ Order placed successfully: ${orderResult.data.orderId}`);
 
