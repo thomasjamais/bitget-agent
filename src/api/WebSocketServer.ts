@@ -12,11 +12,13 @@ export class TradingBotWebSocketServer {
   private clients: Set<WebSocket> = new Set();
   private port: number;
   private latestBotData: BotData | null = null;
+  private rest: any;
   private portfolioControlCallbacks: {
     onAllocateCapital?: (amount: number) => Promise<any>;
     onTriggerRebalance?: () => Promise<any>;
     onUpdateAllocation?: (symbol: string, percentage: number) => Promise<any>;
     onSwitchTradingMode?: (mode: string, useTestnet: boolean) => Promise<any>;
+    onTransfer?: (request: any) => Promise<boolean>;
   } = {};
 
   constructor(port: number = 8080) {
@@ -142,6 +144,48 @@ export class TradingBotWebSocketServer {
       } catch (error: any) {
         logger.error('❌ Mode switch failed:', error);
         return res.status(500).json({ error: 'Failed to switch mode: ' + error.message });
+      }
+    });
+
+    // Portfolio transfer endpoint
+    this.app.post('/api/transfer', async (req: Request, res: Response) => {
+      try {
+        const { from, to, amount, currency } = req.body;
+        
+        if (!from || !to || !amount || !currency) {
+          return res.status(400).json({ error: 'Missing required fields: from, to, amount, currency' });
+        }
+
+        if (amount <= 0) {
+          return res.status(400).json({ error: 'Amount must be greater than 0' });
+        }
+
+        if (from === to) {
+          return res.status(400).json({ error: 'Cannot transfer to the same wallet' });
+        }
+
+        logger.info(`🔄 API: Transfer request - ${amount} ${currency} from ${from} to ${to}`);
+        
+        // Use PortfolioTransfer directly
+        const { PortfolioTransfer } = await import("../portfolio/PortfolioTransfer.js");
+        const portfolioTransfer = new PortfolioTransfer(this.rest);
+        const success = await portfolioTransfer.transferFunds({ from, to, amount, currency });
+        
+        if (success) {
+          return res.json({ 
+            success: true, 
+            message: `Transfer completed: ${amount} ${currency} from ${from} to ${to}`,
+            transferId: `transfer_${Date.now()}`
+          });
+        } else {
+          return res.status(500).json({ 
+            error: 'Transfer failed',
+            message: `Failed to transfer ${amount} ${currency} from ${from} to ${to}`
+          });
+        }
+      } catch (error: any) {
+        logger.error('❌ Transfer failed:', error);
+        return res.status(500).json({ error: 'Transfer failed: ' + error.message });
       }
     });
   }
@@ -284,9 +328,14 @@ export class TradingBotWebSocketServer {
     onTriggerRebalance?: () => Promise<any>;
     onUpdateAllocation?: (symbol: string, percentage: number) => Promise<any>;
     onSwitchTradingMode?: (mode: string, useTestnet: boolean) => Promise<any>;
+    onTransfer?: (request: any) => Promise<boolean>;
   }) {
     this.portfolioControlCallbacks = callbacks;
     logger.info('🎛️ Portfolio control callbacks registered');
+  }
+
+  public setRestClient(rest: any) {
+    this.rest = rest;
   }
 
   private async triggerPortfolioAllocation(amount: number) {
@@ -357,5 +406,14 @@ export class TradingBotWebSocketServer {
       connectedClients: this.clients.size,
       isRunning: this.server.listening
     };
+  }
+
+  private async handleTransfer(request: any): Promise<boolean> {
+    if (this.portfolioControlCallbacks.onTransfer) {
+      return await this.portfolioControlCallbacks.onTransfer(request);
+    } else {
+      logger.warn('⚠️ No transfer callback registered');
+      throw new Error('No transfer handler configured');
+    }
   }
 }

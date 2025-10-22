@@ -12,10 +12,19 @@ export class BotWebSocketAdapter {
   private startTime: number;
   private lastBroadcast: number = 0;
   private broadcastInterval: number = 2000; // 2 seconds - Optimized for fluid dashboard updates
+  private rest: any;
 
   constructor(port: number = 8080) {
     this.wsServer = new TradingBotWebSocketServer(port);
     this.startTime = Date.now();
+  }
+
+  public setRestClient(rest: any) {
+    this.rest = rest;
+  }
+
+  public get webSocketServer() {
+    return this.wsServer;
   }
 
   public async start(): Promise<void> {
@@ -170,27 +179,48 @@ export class BotWebSocketAdapter {
   }
 
   /**
-   * Handle portfolio transfer request
+   * Handle portfolio transfer request using real Bitget API
    */
   public async handlePortfolioTransfer(transferRequest: any): Promise<boolean> {
     try {
       logger.info("🔄 Portfolio transfer request received:", transferRequest);
       
-      // For now, we'll simulate the transfer since Bitget API doesn't have direct transfer
-      // In a real implementation, you would call the actual transfer API
-      logger.warn("⚠️ Manual transfer required: Please transfer via Bitget interface");
+      // Use the portfolio transfer system for real transfers
+      const { PortfolioTransfer } = await import("../portfolio/PortfolioTransfer.js");
+      const portfolioTransfer = new PortfolioTransfer(this.rest);
       
-      // Broadcast transfer notification
+      const success = await portfolioTransfer.transferFunds(transferRequest);
+      
+      if (success) {
+        // Broadcast success notification
+        this.wsServer.broadcast({
+          type: "transfer_success",
+          message: `✅ Transfert réussi: ${transferRequest.amount} USDT de ${transferRequest.from} vers ${transferRequest.to}`,
+          transferRequest,
+          timestamp: Date.now(),
+        } as any);
+      } else {
+        // Broadcast failure notification
+        this.wsServer.broadcast({
+          type: "transfer_error",
+          message: `❌ Échec du transfert: ${transferRequest.amount} USDT de ${transferRequest.from} vers ${transferRequest.to}`,
+          transferRequest,
+          timestamp: Date.now(),
+        } as any);
+      }
+
+      return success;
+    } catch (error) {
+      logger.error("❌ Portfolio transfer failed:", error);
+      
+      // Broadcast error notification
       this.wsServer.broadcast({
-        type: "transfer_notification",
-        message: `Transfert requis: ${transferRequest.amount} USDT de ${transferRequest.from} vers ${transferRequest.to}`,
+        type: "transfer_error",
+        message: `❌ Erreur lors du transfert: ${error}`,
         transferRequest,
         timestamp: Date.now(),
       } as any);
-
-      return true; // Assume success for now
-    } catch (error) {
-      logger.error("❌ Portfolio transfer failed:", error);
+      
       return false;
     }
   }

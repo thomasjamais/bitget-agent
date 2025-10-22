@@ -15,11 +15,18 @@ interface PortfolioTransferProps {
   futuresBalance: number;
 }
 
-export function PortfolioTransfer({ onTransfer, spotBalance, futuresBalance }: PortfolioTransferProps) {
+export function PortfolioTransfer({
+  onTransfer,
+  spotBalance,
+  futuresBalance,
+}: PortfolioTransferProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [amount, setAmount] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [message, setMessage] = useState<{ type: "success" | "error" | "info"; text: string } | null>(null);
+  const [message, setMessage] = useState<{
+    type: "success" | "error" | "info";
+    text: string;
+  } | null>(null);
 
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat("en-US", {
@@ -30,7 +37,10 @@ export function PortfolioTransfer({ onTransfer, spotBalance, futuresBalance }: P
     }).format(value);
   };
 
-  const handleTransfer = async (from: "spot" | "futures", to: "spot" | "futures") => {
+  const handleTransfer = async (
+    from: "spot" | "futures",
+    to: "spot" | "futures"
+  ) => {
     if (!amount || parseFloat(amount) <= 0) {
       setMessage({ type: "error", text: "Veuillez entrer un montant valide" });
       return;
@@ -40,9 +50,11 @@ export function PortfolioTransfer({ onTransfer, spotBalance, futuresBalance }: P
     const availableBalance = from === "spot" ? spotBalance : futuresBalance;
 
     if (transferAmount > availableBalance) {
-      setMessage({ 
-        type: "error", 
-        text: `Montant insuffisant. Disponible: ${formatCurrency(availableBalance)}` 
+      setMessage({
+        type: "error",
+        text: `Montant insuffisant. Disponible: ${formatCurrency(
+          availableBalance
+        )}`,
       });
       return;
     }
@@ -59,21 +71,23 @@ export function PortfolioTransfer({ onTransfer, spotBalance, futuresBalance }: P
       });
 
       if (success) {
-        setMessage({ 
-          type: "success", 
-          text: `Transfert réussi: ${formatCurrency(transferAmount)} de ${from} vers ${to}` 
+        setMessage({
+          type: "success",
+          text: `Transfert réussi: ${formatCurrency(
+            transferAmount
+          )} de ${from} vers ${to}`,
         });
         setAmount("");
       } else {
-        setMessage({ 
-          type: "error", 
-          text: "Échec du transfert. Vérifiez votre solde et réessayez." 
+        setMessage({
+          type: "error",
+          text: "Échec du transfert. Vérifiez votre solde et réessayez.",
         });
       }
     } catch (error) {
-      setMessage({ 
-        type: "error", 
-        text: "Erreur lors du transfert. Veuillez réessayer." 
+      setMessage({
+        type: "error",
+        text: "Erreur lors du transfert. Veuillez réessayer.",
       });
     } finally {
       setIsLoading(false);
@@ -176,11 +190,15 @@ export function PortfolioTransfer({ onTransfer, spotBalance, futuresBalance }: P
 
           {/* Message Display */}
           {message && (
-            <div className={`p-3 rounded-lg ${
-              message.type === "success" ? "bg-green-900 text-green-300" :
-              message.type === "error" ? "bg-red-900 text-red-300" :
-              "bg-blue-900 text-blue-300"
-            }`}>
+            <div
+              className={`p-3 rounded-lg ${
+                message.type === "success"
+                  ? "bg-green-900 text-green-300"
+                  : message.type === "error"
+                  ? "bg-red-900 text-red-300"
+                  : "bg-blue-900 text-blue-300"
+              }`}
+            >
               {message.text}
             </div>
           )}

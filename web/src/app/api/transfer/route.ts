@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(request: NextRequest) {
   try {
@@ -8,42 +8,62 @@ export async function POST(request: NextRequest) {
     // Validate request
     if (!from || !to || !amount || !currency) {
       return NextResponse.json(
-        { error: 'Missing required fields' },
+        { error: "Missing required fields" },
         { status: 400 }
       );
     }
 
     if (amount <= 0) {
       return NextResponse.json(
-        { error: 'Amount must be greater than 0' },
+        { error: "Amount must be greater than 0" },
         { status: 400 }
       );
     }
 
     if (from === to) {
       return NextResponse.json(
-        { error: 'Cannot transfer to the same wallet' },
+        { error: "Cannot transfer to the same wallet" },
         { status: 400 }
       );
     }
 
-    // For now, we'll simulate the transfer
-    // In a real implementation, you would call the bot's transfer API
-    console.log('Transfer request:', { from, to, amount, currency });
+    console.log("Transfer request:", { from, to, amount, currency });
 
-    // Simulate processing time
-    await new Promise(resolve => setTimeout(resolve, 1000));
+    // Call the bot's WebSocket server to handle the transfer
+    try {
+      const response = await fetch("http://localhost:8080/api/transfer", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ from, to, amount, currency }),
+      });
 
-    return NextResponse.json({
-      success: true,
-      message: `Transfer initiated: ${amount} ${currency} from ${from} to ${to}`,
-      transferId: `transfer_${Date.now()}`,
-    });
-
+      if (response.ok) {
+        const result = await response.json();
+        return NextResponse.json({
+          success: true,
+          message: result.message || `Transfer completed: ${amount} ${currency} from ${from} to ${to}`,
+          transferId: result.transferId || `transfer_${Date.now()}`,
+        });
+      } else {
+        const errorData = await response.json();
+        return NextResponse.json(
+          { error: errorData.error || "Transfer failed" },
+          { status: response.status }
+        );
+      }
+    } catch (botError) {
+      console.error("Bot communication error:", botError);
+      return NextResponse.json(
+        { error: "Failed to communicate with trading bot" },
+        { status: 503 }
+      );
+    }
   } catch (error) {
-    console.error('Transfer API error:', error);
+    console.error("Transfer API error:", error);
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { error: "Internal server error" },
       { status: 500 }
     );
   }

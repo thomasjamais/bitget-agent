@@ -37,10 +37,10 @@ export default function PortfolioPage() {
   const handleTransfer = async (request: any): Promise<boolean> => {
     try {
       // Send transfer request via WebSocket
-      const response = await fetch('/api/transfer', {
-        method: 'POST',
+      const response = await fetch("/api/transfer", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify(request),
       });
@@ -48,11 +48,11 @@ export default function PortfolioPage() {
       if (response.ok) {
         return true;
       } else {
-        console.error('Transfer failed:', await response.text());
+        console.error("Transfer failed:", await response.text());
         return false;
       }
     } catch (error) {
-      console.error('Transfer error:', error);
+      console.error("Transfer error:", error);
       return false;
     }
   };

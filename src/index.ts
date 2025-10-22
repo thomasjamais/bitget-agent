@@ -123,6 +123,10 @@ class BitgetTradingBot {
 
       // Start WebSocket server for dashboard
       await this.wsAdapter.start();
+      
+      // Set the REST client for transfers
+      this.wsAdapter.setRestClient(this.rest);
+      this.wsAdapter.webSocketServer.setRestClient(this.rest);
 
       // Register portfolio control callbacks
       this.wsAdapter.setPortfolioControlCallbacks({
