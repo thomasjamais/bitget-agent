@@ -1,0 +1,10 @@
+# Bitget API Credentials Template
+# Create a .env file in the root directory with your actual credentials:
+
+BITGET_API_KEY=your_actual_api_key_here
+BITGET_API_SECRET=your_actual_api_secret_here
+BITGET_API_PASSPHRASE=your_actual_api_passphrase_here
+
+# Bot Configuration
+NODE_ENV=development
+LOG_LEVEL=info
