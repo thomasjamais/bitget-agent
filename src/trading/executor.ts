@@ -16,8 +16,28 @@ export const open = async (rest: RestClientV2, intent: PositionIntent) => {
       `🚀 Opening ${intent.direction} position for ${intent.symbol}: ${intent.quantity} @ leverage ${leverage}`
     );
 
-    // Skip leverage setting for spot trading
-    logger.info(`📊 Using spot trading (no leverage needed)`);
+    // Set leverage for futures trading
+    try {
+      await rest.setFuturesLeverage({
+        productType: "USDT-FUTURES" as const,
+        symbol: intent.symbol,
+        marginCoin,
+        leverage,
+        holdSide: intent.direction === "long" ? "long" : "short",
+      });
+      logger.info(`✅ Leverage set to ${leverage}x for ${intent.symbol}`);
+    } catch (leverageError: any) {
+      // Leverage might already be set, continue if it's just a "no change" error
+      if (
+        !leverageError.message?.includes("leverage") &&
+        !leverageError.message?.includes("40008")
+      ) {
+        throw leverageError;
+      }
+      logger.warn(
+        `Leverage setting skipped (may already be set): ${leverageError.message}`
+      );
+    }
 
     // 2. Place the main order
     const isMarketOrder = !intent.orderType || intent.orderType === "market";
@@ -28,15 +48,15 @@ export const open = async (rest: RestClientV2, intent: PositionIntent) => {
     // Skip price fetching for spot market orders
     logger.info(`📊 Using spot market orders (no price needed)`);
 
-    // Try using spot API instead of futures to avoid unilateral position issues
+    // Use futures API for scalping strategies with leverage
     const orderParams = {
-      productType: "SPOT" as const,
+      productType: "USDT-FUTURES" as const,
       symbol: intent.symbol,
       marginCoin,
+      marginMode: "crossed" as const, // Use crossed mode for better compatibility
       size: formattedSize, // USDT amount for market orders, formatted to 2 decimals
       side,
-      orderType: "market" as const, // Use market orders for spot trading
-      force: "gtc" as const, // Required for spot orders
+      orderType: "market" as const, // Use market orders for immediate execution
       clientOid: `bot_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
     };
 
@@ -53,7 +73,7 @@ export const open = async (rest: RestClientV2, intent: PositionIntent) => {
     );
 
     logger.info({ orderParams }, `📝 Submitting order`);
-    const orderResult = await rest.spotSubmitOrder(orderParams);
+    const orderResult = await rest.futuresSubmitOrder(orderParams);
 
     logger.info(`✅ Order placed successfully: ${orderResult.data.orderId}`);
 

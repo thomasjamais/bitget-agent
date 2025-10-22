@@ -19,6 +19,7 @@ import {
   PortfolioBalancer,
   RebalanceAction,
 } from "./portfolio/PortfolioBalancer.js";
+import { PortfolioTransfer } from "./portfolio/PortfolioTransfer.js";
 import { BotState, PositionIntent, Bar } from "./types/index.js";
 import { BotWebSocketAdapter } from "./api/BotWebSocketAdapter.js";
 
@@ -31,6 +32,7 @@ class BitgetTradingBot {
   private aiEngine: AIEngine | EnhancedAIEngine;
   private decisionEngine: AggressiveDecisionEngine;
   private portfolioBalancer: PortfolioBalancer;
+  private portfolioTransfer!: PortfolioTransfer;
   private wsAdapter: BotWebSocketAdapter;
   private rest: any;
   private ws: any;
@@ -102,6 +104,11 @@ class BitgetTradingBot {
 
       // Load AI engine
       await this.aiEngine.load();
+
+      // 📊 Initialize portfolio transfer system
+      this.logger.info("🔄 Initializing dual portfolio system...");
+      this.portfolioTransfer = new PortfolioTransfer(this.rest);
+      this.logger.info("✅ Portfolio transfer system initialized");
 
       // 📊 Initialize portfolio balancer
       this.logger.info("📊 Initializing portfolio balancer...");
@@ -1082,6 +1089,11 @@ class BitgetTradingBot {
         // Process portfolio rebalancing
         await this.processPortfolioRebalancing();
 
+        // Auto-rebalance between spot and futures portfolios every 5 minutes
+        if (Date.now() % 300000 < 30000) { // Every 5 minutes (within 30s window)
+          await this.autoRebalancePortfolios();
+        }
+
         // Generate comprehensive market report every 30 seconds
         await this.generateMarketReport();
 
@@ -1510,10 +1522,40 @@ class BitgetTradingBot {
 
   /**
    * Allocate a specific amount of capital to the portfolio for trading
+   * Uses dual portfolio system: Spot for asset allocation, Futures for scalping
    */
   async allocateCapitalToPortfolio(amount: number): Promise<any> {
     try {
-      this.logger.info(`💰 Allocating ${amount} USDT to trading portfolio`);
+      this.logger.info(`💰 Allocating ${amount} USDT using dual portfolio system`);
+
+      // Get current portfolio balances
+      const balances = await this.portfolioTransfer.getPortfolioBalances();
+      this.logger.info("📊 Current portfolio balances:", {
+        spotUSDT: balances.spot.USDT,
+        futuresUSDT: balances.futures.USDT,
+        futuresEquity: balances.futures.totalEquity,
+      });
+
+      // Check if we need to transfer funds from spot to futures
+      if (balances.spot.USDT >= amount) {
+        this.logger.info(`🔄 Transferring ${amount} USDT from spot to futures for trading`);
+        
+        const transferSuccess = await this.portfolioTransfer.transferFunds({
+          from: "spot",
+          to: "futures",
+          amount: amount,
+          currency: "USDT",
+        });
+
+        if (!transferSuccess) {
+          throw new Error("Failed to transfer funds from spot to futures");
+        }
+
+        this.logger.info(`✅ Successfully transferred ${amount} USDT to futures wallet`);
+      } else {
+        this.logger.warn(`⚠️ Insufficient spot balance. Available: ${balances.spot.USDT} USDT, Required: ${amount} USDT`);
+        throw new Error(`Insufficient spot balance. Available: ${balances.spot.USDT} USDT, Required: ${amount} USDT`);
+      }
 
       // Update the portfolio balancer with the new trading capital
       const config = configManager.getConfig();
@@ -1523,7 +1565,7 @@ class BitgetTradingBot {
 
       // Set the trading capital amount
       const tradingCapital = amount;
-      this.logger.info(`🎯 Trading capital set to ${tradingCapital} USDT`);
+      this.logger.info(`🎯 Trading capital set to ${tradingCapital} USDT in futures wallet`);
 
       // Calculate simple allocation actions based on targets
       const allocations: any[] = [];
@@ -1680,6 +1722,69 @@ class BitgetTradingBot {
     } catch (error) {
       this.logger.error("❌ Portfolio capital allocation failed:", error);
       throw error;
+    }
+  }
+
+  /**
+   * Allocate spot portfolio based on target allocations
+   */
+  async allocateSpotPortfolio(amount: number): Promise<any> {
+    try {
+      this.logger.info(`🎯 Allocating ${amount} USDT to spot portfolio`);
+
+      const config = configManager.getConfig();
+      if (!config || !config.portfolio) {
+        throw new Error("Portfolio configuration not loaded");
+      }
+
+      // Get target allocations
+      const targetAllocations = config.portfolio.targetAllocations || {
+        BTCUSDT: 0.3,
+        ETHUSDT: 0.25,
+        BNBUSDT: 0.42,
+        MATICUSDT: 0.03,
+      };
+
+      // Allocate spot portfolio
+      const success = await this.portfolioTransfer.allocateSpotPortfolio(
+        targetAllocations,
+        amount
+      );
+
+      if (success) {
+        this.logger.info(`✅ Spot portfolio allocation completed for ${amount} USDT`);
+        return {
+          success: true,
+          message: `Spot portfolio allocated with ${amount} USDT`,
+          amount,
+          allocations: targetAllocations,
+        };
+      } else {
+        throw new Error("Spot portfolio allocation failed");
+      }
+    } catch (error) {
+      this.logger.error("❌ Spot portfolio allocation failed:", error);
+      throw error;
+    }
+  }
+
+  /**
+   * Auto-rebalance between spot and futures portfolios
+   */
+  async autoRebalancePortfolios(): Promise<void> {
+    try {
+      this.logger.info("🔄 Auto-rebalancing portfolios");
+
+      // Check if we need to rebalance from futures to spot
+      const rebalanceSuccess = await this.portfolioTransfer.rebalanceFromFutures(50); // Keep 50 USDT in futures
+      
+      if (rebalanceSuccess) {
+        this.logger.info("✅ Portfolio rebalancing completed");
+      } else {
+        this.logger.warn("⚠️ Portfolio rebalancing had issues");
+      }
+    } catch (error) {
+      this.logger.error("❌ Auto-rebalancing failed:", error);
     }
   }
 
