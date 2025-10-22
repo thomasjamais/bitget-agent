@@ -1,8 +1,8 @@
 {
   "api": {
-    "key": "bg_0b2ec9944060a0c28ff6be0f11d937b8",
-    "secret": "400f05ea3920becfdb59c0242ebbb96213c32632262dfcb050b2881a18dad460",
-    "passphrase": "08072002",
+    "key": "${BITGET_API_KEY}",
+    "secret": "${BITGET_API_SECRET}",
+    "passphrase": "${BITGET_API_PASSPHRASE}",
     "useTestnet": true
   },
   "instructions": [
@@ -11,8 +11,13 @@
       "name": "BTC Scalping Strategy",
       "description": "Short-term scalping on Bitcoin with tight risk management",
       "enabled": true,
-      "symbols": ["BTCUSDT"],
-      "timeframes": ["1m", "5m"],
+      "symbols": [
+        "BTCUSDT"
+      ],
+      "timeframes": [
+        "1m",
+        "5m"
+      ],
       "direction": "both",
       "risk": {
         "maxRiskPerTrade": 1.0,
@@ -24,11 +29,19 @@
       },
       "signals": {
         "minConfidence": 0.7,
-        "requiredSources": ["ai-v1"],
+        "requiredSources": [
+          "ai-v1"
+        ],
         "cooldownMs": 300000
       },
       "schedule": {
-        "daysOfWeek": [1, 2, 3, 4, 5],
+        "daysOfWeek": [
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
         "startTime": "09:00",
         "endTime": "17:00",
         "timezone": "UTC"
@@ -39,8 +52,16 @@
       "name": "Altcoin Swing Trading",
       "description": "Medium-term swing trades on major altcoins",
       "enabled": true,
-      "symbols": ["ETHUSDT", "ADAUSDT", "SOLUSDT", "AVAXUSDT"],
-      "timeframes": ["15m", "1h"],
+      "symbols": [
+        "ETHUSDT",
+        "ADAUSDT",
+        "SOLUSDT",
+        "AVAXUSDT"
+      ],
+      "timeframes": [
+        "15m",
+        "1h"
+      ],
       "direction": "both",
       "risk": {
         "maxRiskPerTrade": 2.0,
@@ -57,11 +78,18 @@
     },
     {
       "id": "trend-following",
-      "name": "Trend Following Strategy", 
+      "name": "Trend Following Strategy",
       "description": "Follow strong trends on major pairs with momentum indicators",
       "enabled": false,
-      "symbols": ["BTCUSDT", "ETHUSDT", "BNBUSDT"],
-      "timeframes": ["4h", "1d"],
+      "symbols": [
+        "BTCUSDT",
+        "ETHUSDT",
+        "BNBUSDT"
+      ],
+      "timeframes": [
+        "4h",
+        "1d"
+      ],
       "direction": "both",
       "risk": {
         "maxRiskPerTrade": 3.0,
@@ -89,7 +117,14 @@
     "sizingMethod": "percent"
   },
   "marketData": {
-    "symbols": ["BTCUSDT", "ETHUSDT", "ADAUSDT", "SOLUSDT", "AVAXUSDT", "BNBUSDT"],
+    "symbols": [
+      "BTCUSDT",
+      "ETHUSDT",
+      "ADAUSDT",
+      "SOLUSDT",
+      "AVAXUSDT",
+      "BNBUSDT"
+    ],
     "defaultTimeframe": "5m",
     "reconnect": {
       "maxAttempts": 5,
@@ -126,7 +161,9 @@
   },
   "notifications": {
     "enabled": false,
-    "webhooks": ["https://hooks.slack.com/services/YOUR/SLACK/WEBHOOK"],
+    "webhooks": [
+      "https://hooks.slack.com/services/YOUR/SLACK/WEBHOOK"
+    ],
     "email": {
       "enabled": false,
       "smtp": {
@@ -135,7 +172,9 @@
         "user": "your-email@gmail.com",
         "password": "your-app-password"
       },
-      "to": ["alerts@yourcompany.com"]
+      "to": [
+        "alerts@yourcompany.com"
+      ]
     }
   }
 }
