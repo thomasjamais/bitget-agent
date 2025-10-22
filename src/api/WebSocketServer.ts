@@ -168,7 +168,11 @@ export class TradingBotWebSocketServer {
         
         // Use PortfolioTransfer directly
         const { PortfolioTransfer } = await import("../portfolio/PortfolioTransfer.js");
-        const portfolioTransfer = new PortfolioTransfer(this.rest);
+        const portfolioTransfer = new PortfolioTransfer(this.rest, {
+          apiKey: process.env.BITGET_API_KEY || '',
+          apiSecret: process.env.BITGET_API_SECRET || '',
+          apiPassphrase: process.env.BITGET_API_PASSPHRASE || ''
+        });
         const success = await portfolioTransfer.transferFunds({ from, to, amount, currency });
         
         if (success) {

@@ -184,13 +184,15 @@ export class BotWebSocketAdapter {
   public async handlePortfolioTransfer(transferRequest: any): Promise<boolean> {
     try {
       logger.info("🔄 Portfolio transfer request received:", transferRequest);
-      
+
       // Use the portfolio transfer system for real transfers
-      const { PortfolioTransfer } = await import("../portfolio/PortfolioTransfer.js");
+      const { PortfolioTransfer } = await import(
+        "../portfolio/PortfolioTransfer.js"
+      );
       const portfolioTransfer = new PortfolioTransfer(this.rest);
-      
+
       const success = await portfolioTransfer.transferFunds(transferRequest);
-      
+
       if (success) {
         // Broadcast success notification
         this.wsServer.broadcast({
@@ -212,7 +214,7 @@ export class BotWebSocketAdapter {
       return success;
     } catch (error) {
       logger.error("❌ Portfolio transfer failed:", error);
-      
+
       // Broadcast error notification
       this.wsServer.broadcast({
         type: "transfer_error",
@@ -220,7 +222,7 @@ export class BotWebSocketAdapter {
         transferRequest,
         timestamp: Date.now(),
       } as any);
-      
+
       return false;
     }
   }

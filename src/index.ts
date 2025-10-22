@@ -107,7 +107,11 @@ class BitgetTradingBot {
 
       // 📊 Initialize portfolio transfer system
       this.logger.info("🔄 Initializing dual portfolio system...");
-      this.portfolioTransfer = new PortfolioTransfer(this.rest);
+      this.portfolioTransfer = new PortfolioTransfer(this.rest, {
+        apiKey: process.env.BITGET_API_KEY || '',
+        apiSecret: process.env.BITGET_API_SECRET || '',
+        apiPassphrase: process.env.BITGET_API_PASSPHRASE || ''
+      });
       this.logger.info("✅ Portfolio transfer system initialized");
 
       // 📊 Initialize portfolio balancer
@@ -123,7 +127,7 @@ class BitgetTradingBot {
 
       // Start WebSocket server for dashboard
       await this.wsAdapter.start();
-      
+
       // Set the REST client for transfers
       this.wsAdapter.setRestClient(this.rest);
       this.wsAdapter.webSocketServer.setRestClient(this.rest);
