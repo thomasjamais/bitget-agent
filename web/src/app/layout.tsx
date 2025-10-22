@@ -49,6 +49,7 @@ export default function RootLayout({
                 <NavLink href="/" icon="📊" label="Dashboard" />
                 <NavLink href="/portfolio" icon="💰" label="Portfolio" />
                 <NavLink href="/trades" icon="⚡" label="Active Trades" />
+                <NavLink href="/ai-analysis" icon="🤖" label="AI Analysis" />
                 <NavLink href="/history" icon="📈" label="Trade History" />
                 <NavLink href="/settings" icon="⚙️" label="Settings" />
                 <NavLink href="/logs" icon="📝" label="Logs" />
