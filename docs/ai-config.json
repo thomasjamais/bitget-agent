@@ -1,0 +1,106 @@
+{
+    "ai": {
+        "provider": "openai",
+        "model": "gpt-4",
+        "temperature": 0.1,
+        "maxTokens": 4000,
+        "systemPrompt": "Tu es un expert en développement de bots de trading avec 15 ans d'expérience. Tu travailles sur le bot Bitget avec IA avancée, trading agressif et portfolio balancing automatique.",
+        "contextPrompt": "Architecture: TypeScript/Node.js + Next.js dashboard. Code existant optimisé pour trading haute fréquence avec IA géopolitique."
+    },
+    "project": {
+        "name": "Bitget Trading Bot",
+        "architecture": "TypeScript/Node.js + Next.js",
+        "version": "2.0",
+        "mainFiles": [
+            "src/index.ts",
+            "src/ai/EnhancedAIEngine.ts",
+            "src/strategy/AggressiveDecisionEngine.ts",
+            "src/portfolio/PortfolioBalancer.ts",
+            "src/risk/riskManager.ts",
+            "src/trading/executor.ts",
+            "web/src/app/"
+        ],
+        "keyFeatures": [
+            "Enhanced AI Engine avec analyse géopolitique",
+            "Aggressive Decision Engine (15 trades/jour)",
+            "Portfolio Balancing automatique (8 cryptos)",
+            "Dashboard temps réel Next.js",
+            "Risk Management avancé",
+            "Mode haute fréquence (5s monitoring)"
+        ]
+    },
+    "prompts": {
+        "codeAnalysis": {
+            "system": "Tu es un expert en analyse de code pour bots de trading. Tu analyses le code TypeScript du bot Bitget.",
+            "context": "Architecture: TypeScript/Node.js + Next.js. Objectif: Optimiser les performances de trading.",
+            "output": "Fournis une analyse complète avec code optimisé prêt à implémenter."
+        },
+        "featureDevelopment": {
+            "system": "Tu es un développeur expert en bots de trading. Tu développes de nouvelles fonctionnalités pour le bot Bitget.",
+            "context": "Architecture existante: TypeScript/Node.js + Next.js. Objectif: Ajouter de nouvelles capacités sans casser l'existant.",
+            "output": "Fournis le code complet, tests, documentation et instructions de déploiement."
+        },
+        "performanceOptimization": {
+            "system": "Tu es un expert en optimisation de performance pour bots de trading haute fréquence.",
+            "context": "Architecture: TypeScript/Node.js optimisé pour trading haute fréquence. Objectif: Améliorer les performances.",
+            "output": "Fournis des solutions d'optimisation avec code optimisé et métriques de validation."
+        },
+        "debugAndFix": {
+            "system": "Tu es un expert en debug et résolution de problèmes pour bots de trading.",
+            "context": "Architecture: TypeScript/Node.js + Next.js. Objectif: Résoudre les problèmes rapidement.",
+            "output": "Fournis l'analyse de la cause racine, solution complète et prévention de récurrence."
+        },
+        "testGeneration": {
+            "system": "Tu es un expert en tests pour bots de trading. Tu génères des tests complets.",
+            "context": "Architecture: TypeScript/Node.js. Objectif: Couverture de tests complète.",
+            "output": "Fournis des tests unitaires, d'intégration et de performance complets."
+        },
+        "documentation": {
+            "system": "Tu es un expert en documentation technique pour bots de trading.",
+            "context": "Architecture: TypeScript/Node.js + Next.js. Objectif: Documentation professionnelle.",
+            "output": "Fournis une documentation technique complète avec exemples et guides."
+        }
+    },
+    "workflows": {
+        "development": {
+            "steps": [
+                "1. Analyse de la demande",
+                "2. Génération du code",
+                "3. Génération des tests",
+                "4. Validation",
+                "5. Documentation",
+                "6. Déploiement"
+            ],
+            "timeouts": {
+                "codeGeneration": 300,
+                "testGeneration": 180,
+                "validation": 120,
+                "documentation": 240
+            }
+        },
+        "optimization": {
+            "steps": [
+                "1. Analyse des goulots d'étranglement",
+                "2. Identification des optimisations",
+                "3. Implémentation des solutions",
+                "4. Tests de performance",
+                "5. Validation des métriques",
+                "6. Déploiement"
+            ],
+            "metrics": {
+                "latency": "< 50ms",
+                "throughput": "> 2000/min",
+                "memory": "< 30MB",
+                "cpu": "< 50%"
+            }
+        }
+    },
+    "templates": {
+        "codeAnalysis": "Analyse ce fichier: {filePath}\n\nContexte: {context}\n\nCode:\n```typescript\n{code}\n```\n\nFournis:\n1. Structure actuelle\n2. Points d'amélioration\n3. Code optimisé\n4. Tests suggérés\n5. Documentation",
+        "featureDevelopment": "Développe: {featureName}\n\nDescription: {description}\n\nFichiers: {files}\n\nContexte: {context}\n\nFournis:\n1. Code complet\n2. Tests unitaires\n3. Documentation\n4. Instructions de déploiement",
+        "performanceOptimization": "Optimise: {component}\n\nMétriques actuelles: {current}\nObjectifs: {target}\n\nCode:\n```typescript\n{code}\n```\n\nFournis:\n1. Analyse des goulots\n2. Solutions d'optimisation\n3. Code optimisé\n4. Métriques de validation",
+        "debugAndFix": "Problème: {problem}\n\nLogs: {logs}\nAttendu: {expected}\n\nFichiers: {files}\n\nFournis:\n1. Cause racine\n2. Solution complète\n3. Code corrigé\n4. Tests de validation\n5. Prévention",
+        "testGeneration": "Génère des tests pour: {filePath}\n\nType: {testType}\n\nCode:\n```typescript\n{code}\n```\n\nFournis:\n1. Tests unitaires\n2. Tests d'intégration\n3. Tests de performance\n4. Mocks et stubs\n5. Configuration",
+        "documentation": "Documente: {filePath}\n\nType: {docType}\n\nCode:\n```typescript\n{code}\n```\n\nFournis:\n1. Documentation technique\n2. Exemples d'utilisation\n3. API documentation\n4. Guide de développement\n5. Troubleshooting"
+    }
+}

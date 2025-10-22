@@ -3,10 +3,13 @@
 import { useState, useEffect } from 'react';
 import { DashboardHeader } from '@/components/DashboardHeader';
 import { PortfolioOverview } from '@/components/PortfolioOverview';
+import { PortfolioControls } from '@/components/PortfolioControls';
 import { TradingMetrics } from '@/components/TradingMetrics';
 import { MarketData } from '@/components/MarketData';
 import { RecentTrades } from '@/components/RecentTrades';
 import { TradingOpportunities } from '@/components/TradingOpportunities';
+import { AllocationNotifications } from '@/components/AllocationNotifications';
+import { TargetAllocationManager } from '@/components/TargetAllocationManager';
 import { useWebSocket } from '@/hooks/useWebSocket';
 import { BotData } from '@/types/bot';
 
@@ -26,6 +29,9 @@ export default function Dashboard() {
 
   return (
     <div className="p-6 space-y-6">
+      {/* Allocation notifications overlay */}
+      <AllocationNotifications />
+      
       {/* Header with connection status */}
       <DashboardHeader 
         isConnected={isConnected}
@@ -33,6 +39,33 @@ export default function Dashboard() {
         error={error}
       />
       
+      {/* Portfolio Controls */}
+      <PortfolioControls 
+        portfolio={botData?.portfolio}
+        equity={botData?.equity}
+        onAllocateCapital={async (amount) => {
+          // TODO: Implement API call to allocate capital
+          console.log('Allocating capital:', amount);
+        }}
+        onTriggerRebalance={async () => {
+          // TODO: Implement API call to trigger rebalance
+          console.log('Triggering rebalance');
+        }}
+        onUpdateAllocation={async (symbol, percentage) => {
+          // TODO: Implement API call to update allocation
+          console.log('Updating allocation:', symbol, percentage);
+        }}
+      />
+
+      {/* Target Allocations Manager */}
+      <TargetAllocationManager 
+        portfolio={botData?.portfolio}
+        onUpdateAllocation={async (symbol, percentage) => {
+          console.log('Updating allocation:', symbol, percentage);
+          // The API call is handled inside the component
+        }}
+      />
+
       {/* Main Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Portfolio Overview - Takes 2/3 width */}

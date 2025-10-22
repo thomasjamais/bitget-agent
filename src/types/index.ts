@@ -179,6 +179,29 @@ export interface BotConfig {
     maxSize?: string;
   };
   
+  /** Portfolio configuration */
+  portfolio?: {
+    symbols: string[];
+    targetAllocations: Record<string, number>;
+    rebalanceThreshold: number;
+    minTradeAmount: number;
+    maxTradeAmount: number;
+    rebalanceInterval: number;
+  };
+
+  /** Aggressive trading configuration */
+  aggressiveTrading?: {
+    enabled: boolean;
+    minConfidence: number;
+    minExpectedReturn: number;
+    maxDailyTrades: number;
+    maxConcurrentTrades: number;
+    maxRiskPercent: number;
+    maxLeverage: number;
+    dynamicStopLoss: boolean;
+    portfolioRebalancing: boolean;
+  };
+
   /** Notification settings */
   notifications?: {
     enabled: boolean;

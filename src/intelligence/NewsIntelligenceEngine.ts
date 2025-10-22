@@ -137,8 +137,8 @@ export class NewsIntelligenceEngine {
    * Schedule regular news updates
    */
   private scheduleNewsUpdates(): void {
-    // Update news every 15 minutes
-    cron.schedule('*/15 * * * *', async () => {
+    // Update news every 5 minutes - High frequency mode for better market reactivity
+    cron.schedule('*/5 * * * *', async () => {
       try {
         logger.info('🔄 Scheduled news update starting...');
         const symbols = ['BTCUSDT', 'ETHUSDT', 'BNBUSDT', 'SOLUSDT', 'ADAUSDT', 'AVAXUSDT', 'MATICUSDT', 'DOTUSDT'];
@@ -153,7 +153,7 @@ export class NewsIntelligenceEngine {
       }
     });
 
-    logger.info('📅 News update scheduler activated (15-minute intervals)');
+    logger.info('📅 News update scheduler activated (5-minute intervals) - HIGH FREQUENCY MODE');
   }
 
   /**

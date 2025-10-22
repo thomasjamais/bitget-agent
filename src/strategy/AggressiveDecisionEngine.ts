@@ -3,9 +3,9 @@
  * Maximizes daily trades while maintaining risk management
  */
 
-import { Signal, Bar } from '../types/index.js';
-import { logger } from '../utils/logger.js';
-import { configManager } from '../config/manager.js';
+import { Signal, Bar } from "../types/index.js";
+import { logger } from "../utils/logger.js";
+import { configManager } from "../config/manager.js";
 
 export interface TradingOpportunity {
   symbol: string;
@@ -24,8 +24,8 @@ export interface PortfolioBalance {
   targetWeight: number;
   deviation: number;
   needsRebalancing: boolean;
-  action: 'buy' | 'sell' | 'hold';
-  urgency: 'low' | 'medium' | 'high';
+  action: "buy" | "sell" | "hold";
+  urgency: "low" | "medium" | "high";
 }
 
 export interface DecisionMetrics {
@@ -44,7 +44,7 @@ export class AggressiveDecisionEngine {
   private portfolioWeights: Map<string, number> = new Map();
   private targetAllocations: Map<string, number> = new Map();
   private lastRebalance = 0;
-  private readonly logger = logger.child({ component: 'AggressiveDecision' });
+  private readonly logger = logger.child({ component: "AggressiveDecision" });
 
   constructor() {
     this.initializePortfolioTargets();
@@ -57,34 +57,34 @@ export class AggressiveDecisionEngine {
   private async initializePortfolioTargets(): Promise<void> {
     try {
       const config = await configManager.getConfig();
-      
+
       // Default balanced allocation across symbols
       const symbols = config.marketData.symbols;
       const equalWeight = 1.0 / symbols.length;
-      
+
       // You can customize these weights based on your preferences
       const customWeights = {
-        'BTCUSDT': 0.3,    // 30% BTC (flagship crypto)
-        'ETHUSDT': 0.25,   // 25% ETH (smart contracts leader)
-        'BNBUSDT': 0.15,   // 15% BNB (exchange token)
-        'SOLUSDT': 0.1,    // 10% SOL (fast blockchain)
-        'ADAUSDT': 0.08,   // 8% ADA (academic approach)
-        'AVAXUSDT': 0.07,  // 7% AVAX (fast finality)
-        'MATICUSDT': 0.03, // 3% MATIC (scaling solution)
-        'DOTUSDT': 0.02    // 2% DOT (interoperability)
+        BTCUSDT: 0.3, // 30% BTC (flagship crypto)
+        ETHUSDT: 0.25, // 25% ETH (smart contracts leader)
+        BNBUSDT: 0.15, // 15% BNB (exchange token)
+        SOLUSDT: 0.1, // 10% SOL (fast blockchain)
+        ADAUSDT: 0.08, // 8% ADA (academic approach)
+        AVAXUSDT: 0.07, // 7% AVAX (fast finality)
+        MATICUSDT: 0.03, // 3% MATIC (scaling solution)
+        DOTUSDT: 0.02, // 2% DOT (interoperability)
       };
 
       for (const symbol of symbols) {
-        const weight = customWeights[symbol as keyof typeof customWeights] || equalWeight;
+        const weight =
+          customWeights[symbol as keyof typeof customWeights] || equalWeight;
         this.targetAllocations.set(symbol, weight);
       }
 
-      this.logger.info('🎯 Portfolio targets initialized', {
-        allocations: Object.fromEntries(this.targetAllocations)
+      this.logger.info("🎯 Portfolio targets initialized", {
+        allocations: Object.fromEntries(this.targetAllocations),
       });
-
     } catch (error) {
-      this.logger.error('❌ Failed to initialize portfolio targets:', error);
+      this.logger.error("❌ Failed to initialize portfolio targets:", error);
     }
   }
 
@@ -96,9 +96,12 @@ export class AggressiveDecisionEngine {
     const lastReset = new Date(now);
     lastReset.setHours(0, 0, 0, 0);
 
-    if (this.dailyTrades.size === 0 || now.getTime() - lastReset.getTime() > 24 * 60 * 60 * 1000) {
+    if (
+      this.dailyTrades.size === 0 ||
+      now.getTime() - lastReset.getTime() > 24 * 60 * 60 * 1000
+    ) {
       this.dailyTrades.clear();
-      this.logger.info('🔄 Daily trade counters reset');
+      this.logger.info("🔄 Daily trade counters reset");
     }
   }
 
@@ -106,34 +109,42 @@ export class AggressiveDecisionEngine {
    * Aggressive decision making - looks for any profitable opportunity
    */
   async evaluateOpportunity(
-    symbol: string, 
-    signal: Signal, 
+    symbol: string,
+    signal: Signal,
     marketData: Bar,
     currentEquity: number
   ): Promise<TradingOpportunity | null> {
-    
     try {
       // Reset daily counters if needed
       this.resetDailyCounters();
 
       // Calculate opportunity metrics
-      const confidence = this.calculateAgggressiveConfidence(signal, marketData);
+      const confidence = this.calculateAgggressiveConfidence(
+        signal,
+        marketData
+      );
       const expectedReturn = this.calculateExpectedReturn(signal, marketData);
       const riskScore = this.calculateRiskScore(signal, marketData, symbol);
-      const priority = this.calculatePriority(symbol, signal, confidence, expectedReturn);
+      const priority = this.calculatePriority(
+        symbol,
+        signal,
+        confidence,
+        expectedReturn
+      );
 
       // Aggressive threshold - lower than conservative approach
       const minConfidence = 0.35; // Much lower than typical 0.6-0.8
       const minExpectedReturn = 0.5; // 0.5% minimum expected return
 
       if (confidence >= minConfidence && expectedReturn >= minExpectedReturn) {
-        
         // Check daily trade limits (higher for aggressive strategy)
         const dailyTradesForSymbol = this.dailyTrades.get(symbol) || 0;
         const maxDailyTrades = 15; // Allow up to 15 trades per symbol per day
 
         if (dailyTradesForSymbol >= maxDailyTrades) {
-          this.logger.debug(`📊 Daily trade limit reached for ${symbol}: ${dailyTradesForSymbol}/${maxDailyTrades}`);
+          this.logger.debug(
+            `📊 Daily trade limit reached for ${symbol}: ${dailyTradesForSymbol}/${maxDailyTrades}`
+          );
           return null;
         }
 
@@ -144,8 +155,13 @@ export class AggressiveDecisionEngine {
           expectedReturn,
           riskScore,
           priority,
-          reason: this.generateTradeReason(signal, confidence, expectedReturn, riskScore),
-          timeframe: signal.timeframe || '15m'
+          reason: this.generateTradeReason(
+            signal,
+            confidence,
+            expectedReturn,
+            riskScore
+          ),
+          timeframe: signal.timeframe || "15m",
         };
 
         this.logger.info(`🎯 Opportunity identified for ${symbol}:`, {
@@ -153,16 +169,18 @@ export class AggressiveDecisionEngine {
           expectedReturn: `${expectedReturn.toFixed(2)}%`,
           riskScore: riskScore.toFixed(2),
           priority: priority.toFixed(2),
-          reason: opportunity.reason
+          reason: opportunity.reason,
         });
 
         return opportunity;
       }
 
       return null;
-
     } catch (error) {
-      this.logger.error(`❌ Error evaluating opportunity for ${symbol}:`, error);
+      this.logger.error(
+        `❌ Error evaluating opportunity for ${symbol}:`,
+        error
+      );
       return null;
     }
   }
@@ -170,12 +188,18 @@ export class AggressiveDecisionEngine {
   /**
    * Calculate aggressive confidence - more lenient scoring
    */
-  private calculateAgggressiveConfidence(signal: Signal, marketData: Bar): number {
+  private calculateAgggressiveConfidence(
+    signal: Signal,
+    marketData: Bar
+  ): number {
     let confidence = signal.confidence || 0.5;
 
     // Boost confidence for strong price movements
-    const priceChange = Math.abs((marketData.close - marketData.open) / marketData.open);
-    if (priceChange > 0.01) { // 1% movement
+    const priceChange = Math.abs(
+      (marketData.close - marketData.open) / marketData.open
+    );
+    if (priceChange > 0.01) {
+      // 1% movement
       confidence += priceChange * 2; // Boost confidence significantly
     }
 
@@ -186,16 +210,20 @@ export class AggressiveDecisionEngine {
 
     // Boost confidence during market hours (more activity)
     const hour = new Date().getHours();
-    if ((hour >= 8 && hour <= 16) || (hour >= 20 && hour <= 23)) { // US/Asian market hours
+    if ((hour >= 8 && hour <= 16) || (hour >= 20 && hour <= 23)) {
+      // US/Asian market hours
       confidence += 0.05;
     }
 
     // Enhanced AI boost if available
-    if ('newsImpact' in signal && (signal as any).newsImpact) {
+    if ("newsImpact" in signal && (signal as any).newsImpact) {
       const newsImpact = (signal as any).newsImpact;
-      if (newsImpact.sentiment === 'bullish' && signal.direction === 'long') {
+      if (newsImpact.sentiment === "bullish" && signal.direction === "long") {
         confidence += newsImpact.confidence * 0.2;
-      } else if (newsImpact.sentiment === 'bearish' && signal.direction === 'short') {
+      } else if (
+        newsImpact.sentiment === "bearish" &&
+        signal.direction === "short"
+      ) {
         confidence += newsImpact.confidence * 0.2;
       }
     }
@@ -208,7 +236,7 @@ export class AggressiveDecisionEngine {
    */
   private calculateExpectedReturn(signal: Signal, marketData: Bar): number {
     const baseReturn = (signal.confidence || 0.5) * 2; // Base 0-2%
-    
+
     // Scale by recent volatility
     const volatility = (marketData.high - marketData.low) / marketData.close;
     const volatilityBoost = volatility * 5; // Higher volatility = higher potential returns
@@ -216,22 +244,26 @@ export class AggressiveDecisionEngine {
     // Direction-based calculation
     const priceChange = (marketData.close - marketData.open) / marketData.open;
     let directionBoost = 0;
-    
-    if (signal.direction === 'long' && priceChange > 0) {
+
+    if (signal.direction === "long" && priceChange > 0) {
       directionBoost = Math.abs(priceChange) * 100; // Convert to percentage
-    } else if (signal.direction === 'short' && priceChange < 0) {
+    } else if (signal.direction === "short" && priceChange < 0) {
       directionBoost = Math.abs(priceChange) * 100;
     }
 
     const expectedReturn = baseReturn + volatilityBoost + directionBoost;
-    
+
     return Math.min(expectedReturn, 8); // Cap at 8% expected return
   }
 
   /**
    * Calculate risk score (lower is better)
    */
-  private calculateRiskScore(signal: Signal, marketData: Bar, symbol: string): number {
+  private calculateRiskScore(
+    signal: Signal,
+    marketData: Bar,
+    symbol: string
+  ): number {
     let riskScore = 1.0; // Base risk
 
     // Increase risk during low volume periods
@@ -241,12 +273,13 @@ export class AggressiveDecisionEngine {
 
     // Increase risk for very high volatility
     const volatility = (marketData.high - marketData.low) / marketData.close;
-    if (volatility > 0.05) { // 5% volatility
+    if (volatility > 0.05) {
+      // 5% volatility
       riskScore += volatility * 2;
     }
 
     // Reduce risk for major pairs
-    if (['BTCUSDT', 'ETHUSDT'].includes(symbol)) {
+    if (["BTCUSDT", "ETHUSDT"].includes(symbol)) {
       riskScore *= 0.8;
     }
 
@@ -262,22 +295,30 @@ export class AggressiveDecisionEngine {
   /**
    * Calculate trade priority
    */
-  private calculatePriority(symbol: string, signal: Signal, confidence: number, expectedReturn: number): number {
+  private calculatePriority(
+    symbol: string,
+    signal: Signal,
+    confidence: number,
+    expectedReturn: number
+  ): number {
     let priority = confidence * expectedReturn; // Base priority
 
     // Boost priority for portfolio rebalancing needs
     const currentWeight = this.portfolioWeights.get(symbol) || 0;
     const targetWeight = this.targetAllocations.get(symbol) || 0;
     const deviation = Math.abs(currentWeight - targetWeight);
-    
-    if (deviation > 0.05) { // 5% deviation
+
+    if (deviation > 0.05) {
+      // 5% deviation
       priority += deviation * 10; // Significantly boost priority
     }
 
     // Boost priority for less traded symbols today
     const dailyTrades = this.dailyTrades.get(symbol) || 0;
-    const avgDailyTrades = Array.from(this.dailyTrades.values()).reduce((a, b) => a + b, 0) / this.dailyTrades.size || 0;
-    
+    const avgDailyTrades =
+      Array.from(this.dailyTrades.values()).reduce((a, b) => a + b, 0) /
+        this.dailyTrades.size || 0;
+
     if (dailyTrades < avgDailyTrades) {
       priority += 0.5; // Boost undertraded symbols
     }
@@ -288,43 +329,51 @@ export class AggressiveDecisionEngine {
   /**
    * Generate human-readable trade reason
    */
-  private generateTradeReason(signal: Signal, confidence: number, expectedReturn: number, riskScore: number): string {
+  private generateTradeReason(
+    signal: Signal,
+    confidence: number,
+    expectedReturn: number,
+    riskScore: number
+  ): string {
     const reasons: string[] = [];
 
     if (confidence > 0.7) {
-      reasons.push('High confidence signal');
+      reasons.push("High confidence signal");
     } else if (confidence > 0.5) {
-      reasons.push('Moderate confidence signal');
+      reasons.push("Moderate confidence signal");
     } else {
-      reasons.push('Speculative opportunity');
+      reasons.push("Speculative opportunity");
     }
 
     if (expectedReturn > 3) {
-      reasons.push('high return potential');
+      reasons.push("high return potential");
     } else if (expectedReturn > 1.5) {
-      reasons.push('moderate return potential');
+      reasons.push("moderate return potential");
     } else {
-      reasons.push('small profit opportunity');
+      reasons.push("small profit opportunity");
     }
 
     if (riskScore < 1.2) {
-      reasons.push('low risk');
+      reasons.push("low risk");
     } else if (riskScore < 2.0) {
-      reasons.push('moderate risk');
+      reasons.push("moderate risk");
     } else {
-      reasons.push('higher risk');
+      reasons.push("higher risk");
     }
 
-    return reasons.join(' + ');
+    return reasons.join(" + ");
   }
 
   /**
    * Evaluate portfolio balance and suggest rebalancing trades
    */
-  async evaluatePortfolioBalance(currentPositions: any[], currentEquity: number): Promise<PortfolioBalance[]> {
+  async evaluatePortfolioBalance(
+    currentPositions: any[],
+    currentEquity: number
+  ): Promise<PortfolioBalance[]> {
     try {
       const balances: PortfolioBalance[] = [];
-      
+
       // Calculate current weights
       this.updateCurrentWeights(currentPositions, currentEquity);
 
@@ -332,19 +381,22 @@ export class AggressiveDecisionEngine {
         const currentWeight = this.portfolioWeights.get(symbol) || 0;
         const deviation = currentWeight - targetWeight;
         const absDeviation = Math.abs(deviation);
-        
-        let action: 'buy' | 'sell' | 'hold' = 'hold';
-        let urgency: 'low' | 'medium' | 'high' = 'low';
 
-        if (absDeviation > 0.1) { // 10% deviation
-          action = deviation > 0 ? 'sell' : 'buy';
-          urgency = 'high';
-        } else if (absDeviation > 0.05) { // 5% deviation
-          action = deviation > 0 ? 'sell' : 'buy';
-          urgency = 'medium';
-        } else if (absDeviation > 0.02) { // 2% deviation
-          action = deviation > 0 ? 'sell' : 'buy';
-          urgency = 'low';
+        let action: "buy" | "sell" | "hold" = "hold";
+        let urgency: "low" | "medium" | "high" = "low";
+
+        if (absDeviation > 0.1) {
+          // 10% deviation
+          action = deviation > 0 ? "sell" : "buy";
+          urgency = "high";
+        } else if (absDeviation > 0.05) {
+          // 5% deviation
+          action = deviation > 0 ? "sell" : "buy";
+          urgency = "medium";
+        } else if (absDeviation > 0.02) {
+          // 2% deviation
+          action = deviation > 0 ? "sell" : "buy";
+          urgency = "low";
         }
 
         balances.push({
@@ -354,7 +406,7 @@ export class AggressiveDecisionEngine {
           deviation,
           needsRebalancing: absDeviation > 0.02,
           action,
-          urgency
+          urgency,
         });
       }
 
@@ -362,20 +414,19 @@ export class AggressiveDecisionEngine {
       const now = Date.now();
       if (now - this.lastRebalance > 4 * 60 * 60 * 1000) {
         this.lastRebalance = now;
-        
-        const needsRebalancing = balances.filter(b => b.needsRebalancing);
+
+        const needsRebalancing = balances.filter((b) => b.needsRebalancing);
         if (needsRebalancing.length > 0) {
-          this.logger.info('⚖️ Portfolio rebalancing needed:', {
+          this.logger.info("⚖️ Portfolio rebalancing needed:", {
             imbalanced: needsRebalancing.length,
-            total: balances.length
+            total: balances.length,
           });
         }
       }
 
       return balances;
-
     } catch (error) {
-      this.logger.error('❌ Error evaluating portfolio balance:', error);
+      this.logger.error("❌ Error evaluating portfolio balance:", error);
       return [];
     }
   }
@@ -408,7 +459,7 @@ export class AggressiveDecisionEngine {
       symbol,
       direction: signal.direction,
       confidence: signal.confidence,
-      executed
+      executed,
     });
 
     // Keep only last 100 trades for memory efficiency
@@ -418,7 +469,10 @@ export class AggressiveDecisionEngine {
 
     this.logger.debug(`📊 Trade recorded for ${symbol}:`, {
       dailyCount: this.dailyTrades.get(symbol),
-      totalToday: Array.from(this.dailyTrades.values()).reduce((a, b) => a + b, 0)
+      totalToday: Array.from(this.dailyTrades.values()).reduce(
+        (a, b) => a + b,
+        0
+      ),
     });
   }
 
@@ -426,10 +480,15 @@ export class AggressiveDecisionEngine {
    * Get comprehensive decision metrics
    */
   getDecisionMetrics(): DecisionMetrics {
-    const totalTradesToday = Array.from(this.dailyTrades.values()).reduce((a, b) => a + b, 0);
-    const recentTrades = this.tradeHistory.filter(t => Date.now() - t.timestamp < 24 * 60 * 60 * 1000);
-    const executedTrades = recentTrades.filter(t => t.executed);
-    
+    const totalTradesToday = Array.from(this.dailyTrades.values()).reduce(
+      (a, b) => a + b,
+      0
+    );
+    const recentTrades = this.tradeHistory.filter(
+      (t) => Date.now() - t.timestamp < 24 * 60 * 60 * 1000
+    );
+    const executedTrades = recentTrades.filter((t) => t.executed);
+
     return {
       totalTradesToday,
       successRate: executedTrades.length / Math.max(recentTrades.length, 1),
@@ -437,7 +496,7 @@ export class AggressiveDecisionEngine {
       riskUtilization: 0.75, // Placeholder - would calculate from actual positions
       portfolioBalance: this.calculatePortfolioBalance(),
       opportunitiesIdentified: recentTrades.length,
-      tradesExecuted: executedTrades.length
+      tradesExecuted: executedTrades.length,
     };
   }
 
@@ -459,29 +518,42 @@ export class AggressiveDecisionEngine {
   }
 
   /**
+   * Get current trading opportunities
+   */
+  getOpportunities(): TradingOpportunity[] {
+    // Return empty array for now - opportunities are generated dynamically
+    // This could be enhanced to store and return recent opportunities
+    return [];
+  }
+
+  /**
    * Generate daily performance report
    */
   generateDailyReport(): string {
     const metrics = this.getDecisionMetrics();
-    
-    let report = '📊 AGGRESSIVE DECISION ENGINE - DAILY REPORT\n';
-    report += '═══════════════════════════════════════════\n';
+
+    let report = "📊 AGGRESSIVE DECISION ENGINE - DAILY REPORT\n";
+    report += "═══════════════════════════════════════════\n";
     report += `🎯 Total Trades Today: ${metrics.totalTradesToday}\n`;
     report += `✅ Success Rate: ${(metrics.successRate * 100).toFixed(1)}%\n`;
-    report += `⚖️ Portfolio Balance: ${(metrics.portfolioBalance * 100).toFixed(1)}%\n`;
+    report += `⚖️ Portfolio Balance: ${(metrics.portfolioBalance * 100).toFixed(
+      1
+    )}%\n`;
     report += `🔍 Opportunities Found: ${metrics.opportunitiesIdentified}\n`;
     report += `⚡ Trades Executed: ${metrics.tradesExecuted}\n\n`;
 
-    report += '📈 TRADES BY SYMBOL:\n';
+    report += "📈 TRADES BY SYMBOL:\n";
     for (const [symbol, count] of this.dailyTrades) {
       report += `  ${symbol}: ${count} trades\n`;
     }
 
-    report += '\n⚖️ PORTFOLIO ALLOCATION:\n';
+    report += "\n⚖️ PORTFOLIO ALLOCATION:\n";
     for (const [symbol, target] of this.targetAllocations) {
       const current = this.portfolioWeights.get(symbol) || 0;
       const deviation = ((current - target) * 100).toFixed(1);
-      report += `  ${symbol}: ${(current * 100).toFixed(1)}% (target: ${(target * 100).toFixed(1)}%, deviation: ${deviation}%)\n`;
+      report += `  ${symbol}: ${(current * 100).toFixed(1)}% (target: ${(
+        target * 100
+      ).toFixed(1)}%, deviation: ${deviation}%)\n`;
     }
 
     return report;

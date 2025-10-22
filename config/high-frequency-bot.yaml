@@ -1,0 +1,150 @@
+# HIGH FREQUENCY TRADING CONFIGURATION
+# Optimized for maximum refresh rate and responsiveness
+
+# Trading Configuration
+trading:
+  enabled: true
+  mode: "live"
+  confirmTrades: false
+
+api:
+  key: "${BITGET_API_KEY}"
+  secret: "${BITGET_API_SECRET}"
+  passphrase: "${BITGET_API_PASSPHRASE}"
+  useTestnet: true
+
+# HIGH FREQUENCY STRATEGIES
+instructions:
+  # Ultra-fast scalping strategy
+  - id: "hf-scalp-rsi"
+    name: "High Frequency RSI Scalping"
+    description: "Ultra-fast RSI-based scalping with 1-minute timeframes"
+    enabled: true
+    symbols: ["BTCUSDT", "ETHUSDT", "BNBUSDT"]
+    timeframes: ["1m"]  # Ultra-fast timeframe
+    direction: "both"
+    risk:
+      maxRiskPerTrade: 0.5  # Lower risk for high frequency
+      maxLeverage: 20       # Higher leverage for scalping
+      maxPositionsPerSymbol: 2
+      maxTotalPositions: 6
+      stopLossPercent: 1.0  # Tight stop loss
+      takeProfitPercent: 2.0 # Quick profit taking
+    signals:
+      minConfidence: 0.60   # Lower threshold for more trades
+      cooldownMs: 60000     # Only 1 minute cooldown
+    parameters:
+      rsiPeriod: 7          # Faster RSI
+      rsiOversold: 35       # More sensitive levels
+      rsiOverbought: 65
+
+  # Bollinger Bands micro-breakouts
+  - id: "hf-bb-micro"
+    name: "High Frequency Bollinger Micro-Breakouts"
+    description: "Micro breakouts on 1m timeframes"
+    enabled: true
+    symbols: ["BTCUSDT", "ETHUSDT", "BNBUSDT"]
+    timeframes: ["1m"]
+    direction: "both"
+    risk:
+      maxRiskPerTrade: 0.3
+      maxLeverage: 25
+      maxPositionsPerSymbol: 3
+      maxTotalPositions: 8
+      stopLossPercent: 0.8
+      takeProfitPercent: 1.5
+    signals:
+      minConfidence: 0.55
+      cooldownMs: 30000     # 30 seconds only
+    parameters:
+      bbPeriod: 10          # Faster Bollinger Bands
+      bbStdDev: 1.5         # More sensitive
+      volumeMultiplier: 1.2
+
+# ULTRA-HIGH FREQUENCY MARKET DATA
+marketData:
+  enabled: true
+  symbols: ["BTCUSDT", "ETHUSDT", "BNBUSDT", "SOLUSDT"]  # Focused on most liquid pairs
+  defaultTimeframe: "1m"
+  maxHistoryBars: 500     # More history for better analysis
+  reconnect:
+    enabled: true
+    maxAttempts: 20       # Very persistent reconnection
+    delayMs: 1000         # Very fast reconnection
+    backoffMultiplier: 1.2
+
+# OPTIMIZED PORTFOLIO FOR HIGH FREQUENCY
+portfolio:
+  symbols: ["BTCUSDT", "ETHUSDT", "BNBUSDT", "SOLUSDT"]
+  targetAllocations:
+    BTCUSDT: 0.40      # 40% - Most liquid
+    ETHUSDT: 0.35      # 35% - Second most liquid
+    BNBUSDT: 0.15      # 15% - Exchange coin
+    SOLUSDT: 0.10      # 10% - High performance chain
+  rebalanceThreshold: 0.02  # 2% deviation (more sensitive)
+  minTradeAmount: 5         # Lower minimum for micro-trades
+  maxTradeAmount: 500       # Lower maximum for risk management
+  rebalanceInterval: 1      # Rebalance every hour
+
+# ULTRA-AGGRESSIVE TRADING
+aggressiveTrading:
+  enabled: true
+  minConfidence: 0.25       # Very low threshold for maximum opportunities
+  minExpectedReturn: 0.2    # Very low minimum return for micro-profits
+  maxDailyTrades: 50        # High trade volume
+  maxConcurrentTrades: 8    # More concurrent trades
+  maxRiskPercent: 1.0       # Lower risk per trade
+  maxLeverage: 25           # Higher leverage for scalping
+  dynamicStopLoss: true
+  portfolioRebalancing: true
+
+# Global Risk Management (Tighter for HF)
+globalRisk:
+  maxEquityRisk: 8.0        # Lower total risk
+  maxDailyLoss: 3.0         # Tighter daily loss limit
+  maxConsecutiveLosses: 3   # Fewer consecutive losses allowed
+  sizingMethod: "volatility"
+
+# AI Configuration optimized for speed
+ai:
+  engines:
+    - name: "rsi-engine"
+      enabled: true
+      parameters:
+        period: 7           # Faster RSI
+        overbought: 65      # More sensitive
+        oversold: 35
+        
+    - name: "macd-engine"
+      enabled: true
+      parameters:
+        fastPeriod: 5       # Very fast MACD
+        slowPeriod: 13
+        signalPeriod: 4
+        
+    - name: "bollinger-engine"
+      enabled: true
+      parameters:
+        period: 10          # Faster Bollinger
+        stdDev: 1.5         # More sensitive
+        
+    - name: "volume-engine"
+      enabled: true
+      parameters:
+        smaLength: 10       # Faster volume analysis
+        volumeThreshold: 1.2 # More sensitive
+        
+  consensusThreshold: 1     # Only need 1 indicator agreement for speed
+
+# High frequency logging
+logging:
+  level: "info"
+  file: "logs/high-frequency-trading.log"
+  maxFiles: 30
+  maxSize: "50MB"
+
+# Notifications for HF trading
+notifications:
+  enabled: true
+  webhooks:
+    - "https://discord.com/api/webhooks/YOUR/HF/WEBHOOK"

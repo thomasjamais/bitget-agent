@@ -160,6 +160,7 @@ export class AIEngine {
         });
       }).catch(err => {
         this.logger.error(`AI prediction failed: ${err.message}`);
+        this.logger.error({ error: err }, `🔴 FULL AI PREDICTION ERROR`);
       });
 
       // Fallback to traditional signal generation for immediate response
@@ -193,6 +194,7 @@ export class AIEngine {
       return signal;
     } catch (error) {
       this.logger.error(`Error generating signal for ${symbol}: ${error}`);
+      this.logger.error({ error, symbol }, `🔴 FULL SIGNAL GENERATION ERROR`);
       return null;
     }
   }

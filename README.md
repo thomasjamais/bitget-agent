@@ -1,16 +1,42 @@
-# Bitget Trading Bot
+# 🚀 Bitget Trading Bot - Enhanced AI & Real-Time Dashboard
 
-A comprehensive TypeScript-based automated trading bot for Bitget exchange with advanced configuration management and risk controls.
+A comprehensive TypeScript-based automated trading bot for Bitget exchange with **enhanced AI intelligence**, **aggressive trading engine**, **automatic portfolio balancing**, and **real-time web dashboard**.
 
-## 🚀 Features
+## ✨ Latest Features (v2.0)
 
-- **Configurable Investment Instructions**: Define multiple trading strategies with specific parameters
-- **Advanced Risk Management**: Position sizing, stop losses, daily loss limits, and consecutive loss protection
-- **Real-time Market Data**: WebSocket integration for live price feeds
-- **AI Signal Generation**: Extensible signal engine with support for ML models
-- **Comprehensive Logging**: Structured logging with multiple levels and file output
-- **Flexible Configuration**: Support for JSON and YAML configuration files
-- **Safety Features**: Emergency stops, circuit breakers, and position throttling
+### 🧠 **Enhanced AI Engine**
+- **Geopolitical Intelligence**: OpenAI GPT-4 + Perplexity API for news analysis
+- **Technical + Fundamental Fusion**: Combines market data with geopolitical events
+- **Real-time News Processing**: Automated sentiment analysis and impact assessment
+- **Advanced Signal Generation**: Multi-layer confidence scoring
+
+### ⚡ **Aggressive Trading Engine**
+- **Low Confidence Threshold**: 35% minimum (vs typical 60-80%)
+- **High-Frequency Trading**: Up to 15 trades per day per symbol
+- **Opportunity Maximization**: Designed to capture maximum daily trading opportunities
+- **Dynamic Risk Assessment**: Portfolio-aware position sizing
+
+### ⚖️ **Automatic Portfolio Balancing**
+- **8 Cryptocurrency Portfolio**: BTC, ETH, BNB, SOL, ADA, AVAX, MATIC, DOT
+- **Target Allocations**: Configurable percentage targets per asset
+- **Auto-Rebalancing**: Every 6 hours with 5% deviation threshold
+- **Smart Execution**: Coordinated with trading engine for optimal timing
+
+### 📊 **Real-Time Web Dashboard**
+- **Live Monitoring**: WebSocket-powered real-time updates
+- **Portfolio Overview**: Visual asset allocations and performance tracking
+- **Trading Metrics**: Success rates, daily trades, opportunities identified
+- **Market Data**: Live price feeds with 24h changes and volume
+- **Trade History**: Complete P&L tracking with status indicators
+
+## 🚀 Core Features
+
+- **Advanced AI Integration**: Multiple AI models with geopolitical analysis
+- **Real-time Market Data**: WebSocket integration for live price feeds  
+- **Comprehensive Risk Management**: Position sizing, stop losses, and portfolio balancing
+- **Web Dashboard**: Next.js-based real-time monitoring interface
+- **Flexible Configuration**: YAML-based configuration with hot reloading
+- **Production Ready**: Comprehensive logging, error handling, and monitoring
 
 ## 📋 Prerequisites
 
@@ -47,39 +73,106 @@ BITGET_API_PASSPHRASE=your-bitget-passphrase
 BITGET_USE_TESTNET=true
 ```
 
-### 3. Configure Investment Instructions
+### 3. Configure Trading Bot
 
-Edit `config/bot.yaml` to define your trading strategies:
+The bot comes with pre-configured settings for aggressive trading and portfolio balancing:
 
 ```yaml
-instructions:
-  - id: "btc-scalp"
-    name: "Bitcoin Scalping"
-    enabled: true
-    symbols: ["BTCUSDT"]
-    timeframes: ["1m", "5m"]
-    direction: "both"  # "long", "short", or "both"
-    risk:
-      maxRiskPerTrade: 1.0      # 1% risk per trade
-      maxLeverage: 10           # Max 10x leverage
-      maxPositionsPerSymbol: 2  # Max 2 positions per symbol
-      maxTotalPositions: 5      # Max 5 total positions
-      stopLossPercent: 0.5      # 0.5% stop loss
-      takeProfitPercent: 1.0    # 1.0% take profit
-    signals:
-      minConfidence: 0.7        # Minimum 70% confidence
-      cooldownMs: 300000        # 5 minute cooldown
+# Enhanced AI Configuration
+enhancedAI:
+  enabled: true
+  openai:
+    model: "gpt-4"
+    apiKey: "${OPENAI_API_KEY}"
+  perplexity:
+    apiKey: "${PERPLEXITY_API_KEY}"
+
+# Aggressive Trading Configuration  
+aggressiveTrading:
+  enabled: true
+  minConfidenceThreshold: 0.35    # Low threshold for maximum opportunities
+  maxTradesPerSymbol: 15          # High daily limit
+  riskPerTrade: 0.02              # 2% risk per trade
+
+# Portfolio Balancing
+portfolio:
+  symbols: ["BTCUSDT", "ETHUSDT", "BNBUSDT", "SOLUSDT", "ADAUSDT", "AVAXUSDT", "MATICUSDT", "DOTUSDT"]
+  targetAllocations:
+    BTCUSDT: 0.30      # 30% Bitcoin
+    ETHUSDT: 0.25      # 25% Ethereum
+    BNBUSDT: 0.15      # 15% BNB
+    SOLUSDT: 0.10      # 10% Solana
+    ADAUSDT: 0.08      # 8% Cardano
+    AVAXUSDT: 0.07     # 7% Avalanche
+    MATICUSDT: 0.03    # 3% Polygon
+    DOTUSDT: 0.02      # 2% Polkadot
 ```
 
-### 4. Run the Bot
+### 4. Start Bot + Dashboard
 
 ```bash
-# Development mode with hot reload
+# Method 1: Run bot + dashboard together (Recommended)
+npm run dev:full
+
+# Method 2: Run separately
+# Terminal 1: Trading bot
 npm run dev
 
-# Production build and run
+# Terminal 2: Web dashboard  
+npm run web:dev
+
+# Method 3: Using script
+chmod +x scripts/dev-with-dashboard.sh
+./scripts/dev-with-dashboard.sh
+
+# Production mode
 npm run build
+npm run web:build
 npm start
+```
+
+## 📊 Access Points
+
+| Service | URL | Description |
+|---------|-----|-------------|
+| **Web Dashboard** | http://localhost:3000 | Real-time monitoring interface |
+| **WebSocket API** | ws://localhost:8080/ws | Live data stream |
+| **Bot Logs** | Terminal | Detailed trading activity |
+
+## 📱 Dashboard Features
+
+### 🖥️ **Real-Time Web Interface**
+- **Portfolio Overview**: Live asset allocations with target vs current percentages
+- **Trading Metrics**: Daily trades counter, success rate, opportunities found
+- **Market Data**: Real-time price feeds for all 8 cryptocurrencies
+- **Trading Opportunities**: AI-identified signals with confidence scores and analysis
+- **Recent Trades**: Complete trade history with P&L tracking
+- **Connection Status**: Live WebSocket connection indicator
+
+### 📊 **Monitoring Capabilities**
+- **30-Second Updates**: All data refreshed automatically
+- **Auto-Reconnection**: Dashboard reconnects if connection drops  
+- **Visual Indicators**: Color-coded profit/loss and allocation status
+- **Responsive Design**: Works on desktop, tablet, and mobile
+
+### 🎨 **Dashboard Preview**
+```
+┌─────────────────────────────────────────────────────────────┐
+│  🚀 Bitget Trading Bot Dashboard              ✅ Connected  │
+├─────────────────────────────────────────────────────────────┤
+│                                                             │
+│  💰 Portfolio Overview        ⚡ Aggressive Trading        │
+│  Total Equity: $1,234.56      Daily Trades: 12/15         │
+│  Daily P&L: +$45.67          Success Rate: 83.5%          │
+│                                                             │
+│  BTC: 30.2% ████████● (30.0%) 🟢 BALANCED                 │
+│  ETH: 28.1% ███████● (25.0%) 🔴 OVERWEIGHT               │
+│                                                             │
+│  📊 Market Data              🎯 Trading Opportunities      │
+│  BTC: $67,234 (+2.4%)       🥇 ETHUSDT LONG              │
+│  ETH: $3,456 (-0.8%)           Confidence: 87.3%          │
+└─────────────────────────────────────────────────────────────┘
+```
 ```
 
 ## 📊 Configuration Guide
@@ -313,30 +406,56 @@ bitget-agent/
 ### Available Scripts
 
 ```bash
-npm run dev          # Development with hot reload
-npm run build        # Build TypeScript
-npm start            # Run built application  
-npm run lint         # Check code quality
-npm test             # Run tests (when implemented)
-npm run clean        # Clean build directory
+# Bot Commands
+npm run dev                    # Development with hot reload
+npm run build                  # Build TypeScript
+npm start                      # Run built application
+
+# Dashboard Commands  
+npm run web:install            # Install dashboard dependencies
+npm run web:dev               # Start dashboard development server
+npm run web:build             # Build dashboard for production
+npm run web:start             # Start production dashboard
+
+# Combined Commands
+npm run dev:full              # Run bot + dashboard together
+
+# Testing Commands
+npm run test:aggressive       # Test aggressive trading engine
+npm run test:enhanced-ai      # Test enhanced AI capabilities
+npm run test:technical        # Test technical analysis
+npm run test:trading          # Test real trading functionality
+
+# Utility Commands
+npm run lint                  # Check code quality
+npm run clean                 # Clean build directories
 ```
 
 ## ❓ FAQ
 
+**Q: How does the aggressive trading engine work?**
+A: It uses a 35% minimum confidence threshold (vs typical 60-80%) to capture more opportunities, with up to 15 trades per day per symbol and intelligent risk management.
+
+**Q: Can I customize the portfolio allocations?**
+A: Yes, modify the `targetAllocations` in `config/bot.yaml` to set your preferred cryptocurrency percentages.
+
+**Q: How accurate is the enhanced AI?**
+A: The AI combines technical analysis with real-time geopolitical intelligence using OpenAI GPT-4 and Perplexity APIs for comprehensive market analysis.
+
 **Q: Can I run multiple bots simultaneously?**
-A: Yes, use different configuration files and separate API keys if needed.
+A: Yes, use different configuration files, separate API keys, and different ports for the dashboard.
 
-**Q: How do I add new trading pairs?**
-A: Add symbols to the `marketData.symbols` array and relevant instruction `symbols` arrays.
+**Q: What happens if the WebSocket connection drops?**
+A: The dashboard automatically reconnects, and the bot continues trading independently with full logging.
 
-**Q: Can I use this on other exchanges?**  
-A: The architecture is modular, but currently only Bitget is supported.
+**Q: How do I add new cryptocurrencies to the portfolio?**
+A: Add symbols to both `marketData.symbols` and `portfolio.symbols` arrays, then set target allocations.
 
-**Q: How accurate are the AI signals?**
-A: The default AI is basic. Replace with your own models for better performance.
+**Q: Can I disable the aggressive trading or portfolio balancing?**
+A: Yes, set `aggressiveTrading.enabled: false` or modify settings in `config/bot.yaml`.
 
-**Q: What happens if the bot crashes?**
-A: Positions remain open. Implement monitoring and alerting for production use.
+**Q: How do I configure the geopolitical intelligence?**
+A: Set your OpenAI and Perplexity API keys in the environment variables and enable `enhancedAI.enabled: true`.
 
 ## 🤝 Contributing
 
@@ -354,6 +473,21 @@ This project is licensed under the MIT License. See LICENSE file for details.
 
 This software is for educational and research purposes. Trading cryptocurrencies carries significant financial risk. The authors are not responsible for any financial losses. Use at your own risk and never trade with money you cannot afford to lose.
 
+## 🆕 Recent Updates
+
+### Version 2.0 - Enhanced AI & Real-Time Dashboard
+- ✅ **Enhanced AI Engine**: Geopolitical intelligence with OpenAI + Perplexity
+- ✅ **Aggressive Trading**: 35% confidence threshold for maximum opportunities  
+- ✅ **Portfolio Balancing**: Automatic 8-crypto portfolio management
+- ✅ **Web Dashboard**: Real-time monitoring with WebSocket streaming
+- ✅ **Production Ready**: Comprehensive logging, error handling, and monitoring
+
+### Quick Links
+- 📊 **Dashboard Guide**: [DASHBOARD.md](DASHBOARD.md)
+- 🧠 **AI Implementation**: [ENHANCED_AI_COMPLETE.md](ENHANCED_AI_COMPLETE.md)  
+- ⚡ **Aggressive Trading**: [AI_IMPLEMENTATION_COMPLETE.md](AI_IMPLEMENTATION_COMPLETE.md)
+- 🔧 **Setup Guide**: [IMPLEMENTATION_COMPLETE.md](IMPLEMENTATION_COMPLETE.md)
+
 ---
 
-**Happy Trading! 🚀📈**
+**Happy Trading with Enhanced AI! 🚀🧠�**

@@ -7,10 +7,10 @@ trading:
   confirmTrades: false   # Set to true to require manual confirmation
 
 api:
-  key: "bg_0b2ec9944060a0c28ff6be0f11d937b8"
-  secret: "400f05ea3920becfdb59c0242ebbb96213c32632262dfcb050b2881a18dad460"
-  passphrase: "08072002"
-  useTestnet: true
+  key: "${BITGET_API_KEY}"
+  secret: "${BITGET_API_SECRET}"
+  passphrase: "${BITGET_API_PASSPHRASE}"
+  # useTestnet is now controlled dynamically - no restart required
 
 # Technical Indicator Based Trading Strategies
 instructions:
@@ -20,7 +20,7 @@ instructions:
     description: "Buy on RSI oversold + MACD bullish crossover, sell on RSI overbought + MACD bearish crossover"
     enabled: true
     symbols: ["BTCUSDT", "ETHUSDT", "BNBUSDT"]
-    timeframes: ["15m", "1h"]
+    timeframes: ["1m", "3m", "5m"]  # Optimized for high frequency trading
     direction: "both"
     risk:
       maxRiskPerTrade: 1.5
@@ -30,8 +30,8 @@ instructions:
       stopLossPercent: 2.5
       takeProfitPercent: 6.0
     signals:
-      minConfidence: 0.75
-      cooldownMs: 1800000  # 30 minutes
+      minConfidence: 0.70  # Slightly reduced for more opportunities in HF mode
+      cooldownMs: 300000   # Reduced to 5 minutes for faster re-entries
     parameters:
       # RSI Settings
       rsiPeriod: 14
@@ -209,17 +209,17 @@ globalRisk:
   maxConsecutiveLosses: 4
   sizingMethod: "volatility"
 
-# Market Data Configuration
+# Market Data Configuration - OPTIMIZED FOR BEST REFRESH RATE
 marketData:
   enabled: true
   symbols: ["BTCUSDT", "ETHUSDT", "BNBUSDT", "SOLUSDT", "ADAUSDT", "AVAXUSDT", "MATICUSDT", "DOTUSDT"]
-  defaultTimeframe: "15m"
-  maxHistoryBars: 100
+  defaultTimeframe: "1m"  # Changed from 15m to 1m for maximum responsiveness
+  maxHistoryBars: 200     # Increased for better analysis with shorter timeframes
   reconnect:
     enabled: true
-    maxAttempts: 5
-    delayMs: 5000
-    backoffMultiplier: 2.0
+    maxAttempts: 10       # Increased for better reliability in high frequency mode
+    delayMs: 2000         # Reduced delay for faster reconnection
+    backoffMultiplier: 1.5
 
 # Portfolio Balancing Configuration
 portfolio:

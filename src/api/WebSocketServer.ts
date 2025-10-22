@@ -1,20 +1,149 @@
 import { WebSocketServer, WebSocket } from 'ws';
 import { createServer } from 'http';
+import express, { Request, Response } from 'express';
+import cors from 'cors';
 import { logger } from '../utils/logger.js';
 import { BotData, WSMessage } from '../types/websocket.js';
 
 export class TradingBotWebSocketServer {
   private wss: WebSocketServer;
   private server: any;
+  private app: express.Application;
   private clients: Set<WebSocket> = new Set();
   private port: number;
   private latestBotData: BotData | null = null;
+  private portfolioControlCallbacks: {
+    onAllocateCapital?: (amount: number) => Promise<any>;
+    onTriggerRebalance?: () => Promise<any>;
+    onUpdateAllocation?: (symbol: string, percentage: number) => Promise<any>;
+    onSwitchTradingMode?: (mode: string, useTestnet: boolean) => Promise<any>;
+  } = {};
 
   constructor(port: number = 8080) {
     this.port = port;
-    this.server = createServer();
-    this.wss = new WebSocketServer({ server: this.server });
+    this.app = express();
+    this.server = createServer(this.app);
+    this.wss = new WebSocketServer({ server: this.server, path: '/ws' });
+    this.setupExpress();
     this.setupWebSocket();
+  }
+
+  private setupExpress() {
+    // Middleware
+    this.app.use(cors({
+      origin: ["http://localhost:3000", "http://127.0.0.1:3000"],
+      credentials: true
+    }));
+    this.app.use(express.json());
+
+    // Health check
+    this.app.get('/health', (req: Request, res: Response) => {
+      res.json({ status: 'ok', timestamp: new Date().toISOString() });
+    });
+
+    // Get current bot data
+    this.app.get('/api/bot/status', (req: Request, res: Response) => {
+      res.json(this.latestBotData || {});
+    });
+
+    // Portfolio control endpoints
+    this.app.post('/api/portfolio/allocate', async (req: Request, res: Response) => {
+      try {
+        const { amount } = req.body;
+        
+        if (!amount || amount <= 0) {
+          return res.status(400).json({ error: 'Invalid amount' });
+        }
+
+        logger.info(`🎛️ API: Allocating ${amount} USDT to portfolio`);
+        
+        const result = await this.triggerPortfolioAllocation(amount);
+        
+        return res.json({ 
+          success: true, 
+          message: `Allocated ${amount} USDT to portfolio`,
+          result 
+        });
+      } catch (error: any) {
+        logger.error('❌ Portfolio allocation failed:', error);
+        return res.status(500).json({ error: 'Failed to allocate capital: ' + error.message });
+      }
+    });
+
+    this.app.post('/api/portfolio/rebalance', async (req: Request, res: Response) => {
+      try {
+        logger.info('🎛️ API: Triggering portfolio rebalance');
+        
+        const result = await this.triggerPortfolioRebalance();
+        
+        return res.json({ 
+          success: true, 
+          message: 'Portfolio rebalancing triggered',
+          result 
+        });
+      } catch (error: any) {
+        logger.error('❌ Portfolio rebalance failed:', error);
+        return res.status(500).json({ error: 'Failed to trigger rebalance: ' + error.message });
+      }
+    });
+
+    this.app.put('/api/portfolio/allocation/:symbol', async (req: Request, res: Response) => {
+      try {
+        const { symbol } = req.params;
+        const { percentage } = req.body;
+
+        if (!symbol) {
+          return res.status(400).json({ error: 'Symbol is required' });
+        }
+
+        if (percentage === undefined || percentage < 0 || percentage > 1) {
+          return res.status(400).json({ error: 'Invalid percentage (must be 0-1)' });
+        }
+
+        logger.info(`🎛️ API: Updating ${symbol} allocation to ${percentage * 100}%`);
+        
+        const result = await this.updateAllocation(symbol, percentage);
+        
+        return res.json({ 
+          success: true, 
+          message: `Updated ${symbol} allocation to ${percentage * 100}%`,
+          result 
+        });
+      } catch (error: any) {
+        logger.error('❌ Allocation update failed:', error);
+        return res.status(500).json({ error: 'Failed to update allocation: ' + error.message });
+      }
+    });
+
+    // Trading mode toggle endpoint
+    this.app.post('/api/bot/mode', async (req: Request, res: Response) => {
+      try {
+        const { mode, useTestnet } = req.body;
+        
+        if (!mode || (mode !== 'testnet' && mode !== 'production')) {
+          return res.status(400).json({ error: 'Invalid mode. Use "testnet" or "production"' });
+        }
+        
+        if (typeof useTestnet !== 'boolean') {
+          return res.status(400).json({ error: 'useTestnet must be a boolean' });
+        }
+
+        logger.info(`🎛️ API: Switching to ${mode} mode (useTestnet: ${useTestnet})`);
+        
+        const result = await this.switchTradingMode(mode, useTestnet);
+        
+        return res.json({ 
+          success: true, 
+          message: `Switched to ${mode} mode`,
+          mode,
+          useTestnet,
+          result 
+        });
+      } catch (error: any) {
+        logger.error('❌ Mode switch failed:', error);
+        return res.status(500).json({ error: 'Failed to switch mode: ' + error.message });
+      }
+    });
   }
 
   private setupWebSocket() {
@@ -149,12 +278,60 @@ export class TradingBotWebSocketServer {
     });
   }
 
+  // Portfolio control methods
+  public setPortfolioControlCallbacks(callbacks: {
+    onAllocateCapital?: (amount: number) => Promise<any>;
+    onTriggerRebalance?: () => Promise<any>;
+    onUpdateAllocation?: (symbol: string, percentage: number) => Promise<any>;
+    onSwitchTradingMode?: (mode: string, useTestnet: boolean) => Promise<any>;
+  }) {
+    this.portfolioControlCallbacks = callbacks;
+    logger.info('🎛️ Portfolio control callbacks registered');
+  }
+
+  private async triggerPortfolioAllocation(amount: number) {
+    if (this.portfolioControlCallbacks.onAllocateCapital) {
+      return await this.portfolioControlCallbacks.onAllocateCapital(amount);
+    } else {
+      logger.warn('⚠️ No portfolio allocation callback registered');
+      throw new Error('No allocation handler configured');
+    }
+  }
+
+  private async triggerPortfolioRebalance() {
+    if (this.portfolioControlCallbacks.onTriggerRebalance) {
+      return await this.portfolioControlCallbacks.onTriggerRebalance();
+    } else {
+      logger.warn('⚠️ No portfolio rebalance callback registered');
+      throw new Error('No rebalance handler configured');
+    }
+  }
+
+  private async updateAllocation(symbol: string, percentage: number) {
+    if (this.portfolioControlCallbacks.onUpdateAllocation) {
+      return await this.portfolioControlCallbacks.onUpdateAllocation(symbol, percentage);
+    } else {
+      logger.warn('⚠️ No allocation update callback registered');
+      throw new Error('No allocation update handler configured');
+    }
+  }
+
+  private async switchTradingMode(mode: string, useTestnet: boolean) {
+    if (this.portfolioControlCallbacks.onSwitchTradingMode) {
+      return await this.portfolioControlCallbacks.onSwitchTradingMode(mode, useTestnet);
+    } else {
+      logger.warn('⚠️ No trading mode switch callback registered');
+      throw new Error('No mode switch handler configured');
+    }
+  }
+
   public start(): Promise<void> {
     return new Promise((resolve) => {
       this.server.listen(this.port, () => {
         logger.info(`🚀 WebSocket server started on port ${this.port}`);
         logger.info(`📊 Dashboard available at: http://localhost:3000`);
         logger.info(`🔗 WebSocket endpoint: ws://localhost:${this.port}/ws`);
+        logger.info(`📡 API endpoints: http://localhost:${this.port}/api/*`);
         resolve();
       });
     });

@@ -71,8 +71,8 @@ export class PortfolioBalancer {
       const botConfig = await configManager.getConfig();
       
       // Override with config file settings if available
-      if (botConfig.portfolio) {
-        this.config = { ...this.config, ...botConfig.portfolio };
+      if ((botConfig as any).portfolio) {
+        this.config = { ...this.config, ...(botConfig as any).portfolio };
       }
 
       this.logger.info('📊 Portfolio balancer configured:', {

@@ -1,9 +1,9 @@
 # RSI + MACD + Bollinger Bands Trading Strategies
 
 api:
-  key: "bg_0b2ec9944060a0c28ff6be0f11d937b8"
-  secret: "400f05ea3920becfdb59c0242ebbb96213c32632262dfcb050b2881a18dad460"
-  passphrase: "08072002"
+  key: "${BITGET_API_KEY}"
+  secret: "${BITGET_API_SECRET}"
+  passphrase: "${BITGET_API_PASSPHRASE}"
   useTestnet: true
 
 # Technical Indicator Based Trading Strategies

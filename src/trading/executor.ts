@@ -32,20 +32,36 @@ export const open = async (rest: RestClientV2, intent: PositionIntent) => {
     }
 
     // 2. Place the main order
+    const isMarketOrder = !intent.orderType || intent.orderType === "market";
+    
+    // Format the size properly - for market orders it should be USDT amount
+    const formattedSize = Number(intent.quantity).toFixed(2);
+    
     const orderParams = {
       productType: "USDT-FUTURES" as const,
       symbol: intent.symbol,
       marginCoin,
-      marginMode: "crossed" as const,
-      size: String(intent.quantity),
+      marginMode: "isolated" as const, // Use isolated for unilateral position mode
+      size: formattedSize, // USDT amount for market orders, formatted to 2 decimals
       side,
       orderType: (intent.orderType === "limit" ? "limit" : "market") as "market" | "limit",
+      holdSide: intent.direction as "long" | "short", // Required for unilateral position mode
       ...(intent.reduceOnly && { reduceOnly: "YES" as const }),
       ...(intent.orderType === "limit" && intent.price && { price: String(intent.price) }),
       clientOid: `bot_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
     };
     
-    logger.info(`📝 Submitting order:`, orderParams);
+    // Log detailed order information for debugging
+    logger.info({
+      originalQuantity: intent.quantity,
+      formattedSize,
+      side,
+      orderType: orderParams.orderType,
+      marginMode: orderParams.marginMode,
+      holdSide: orderParams.holdSide
+    }, `📊 Order Details for ${intent.symbol}`);
+    
+    logger.info({ orderParams }, `📝 Submitting order`);
     const orderResult = await rest.futuresSubmitOrder(orderParams);
     
     logger.info(`✅ Order placed successfully: ${orderResult.data.orderId}`);
@@ -57,16 +73,43 @@ export const open = async (rest: RestClientV2, intent: PositionIntent) => {
       details: orderResult.data
     };
   } catch (error: any) {
-    logger.error(`❌ Failed to open position for ${intent.symbol}:`, {
+    // Log complete error object structure to understand what we're dealing with
+    logger.error({ error, symbol: intent.symbol }, `🚨 FULL ERROR OBJECT for ${intent.symbol}`);
+    logger.error({ errorType: typeof error }, `🚨 ERROR TYPE`);
+    logger.error({ constructor: error.constructor.name }, `🚨 ERROR CONSTRUCTOR`);
+    logger.error({ keys: Object.keys(error) }, `🚨 ERROR KEYS`);
+    
+    // Try different error property paths
+    logger.error({ message: error.message || error.msg || error.error || 'No message' }, `🚨 ERROR MESSAGE`);
+    logger.error({ code: error.code || error.statusCode || error.status || 'No code' }, `🚨 ERROR CODE`);
+    logger.error({ data: error.data || error.body || error.responseText || 'No data' }, `🚨 ERROR DATA`);
+    logger.error({ response: error.response || 'No response object' }, `🚨 RESPONSE`);
+    
+    // If it's an HTTP error, check status and statusText
+    if (error.response) {
+      logger.error({ status: error.response.status }, `🚨 HTTP STATUS`);
+      logger.error({ statusText: error.response.statusText }, `🚨 HTTP STATUS TEXT`);
+      logger.error({ httpData: error.response.data }, `🚨 HTTP DATA`);
+    }
+    
+    logger.error({
       error: error.message,
       code: error.code,
+      data: error.data,
+      response: error.response?.data,
       intent: {
         symbol: intent.symbol,
         direction: intent.direction,
         quantity: intent.quantity,
         leverage: intent.leverage
       }
-    });
+    }, `❌ Failed to open position for ${intent.symbol}`);
+    logger.error({
+      fullError: JSON.stringify(error, null, 2),
+      message: error.message,
+      statusCode: error.statusCode,
+      response: error.response
+    }, `❌ TRADE EXECUTION FAILED`);
     throw error;
   }
 };
@@ -82,10 +125,11 @@ export const close = async (rest: RestClientV2, symbol: string, quantity: number
       productType: "USDT-FUTURES" as const,
       symbol,
       marginCoin: "USDT",
-      marginMode: "crossed" as const,
+      marginMode: "isolated" as const, // Use isolated for unilateral position mode
       size: String(quantity),
       side,
       orderType: "market" as const,
+      holdSide: (side === "buy" ? "long" : "short") as "long" | "short", // Required for unilateral position mode
       reduceOnly: "YES" as const,
       clientOid: `close_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
     };
@@ -169,19 +213,92 @@ export const getPositions = async (rest: RestClientV2, symbol?: string) => {
   try {
     logger.info(`📊 Getting positions${symbol ? ` for ${symbol}` : ''}`);
     
-    const params = {
-      productType: "USDT-FUTURES" as const,
-      symbol: symbol || "",
-      marginCoin: "USDT"
-    };
+    // Try different approaches for getting positions
+    const approaches = [
+      // Approach 1: Standard futures positions with specific symbol
+      async () => {
+        if (!symbol) throw new Error("Symbol required for this approach");
+        const params = {
+          productType: "USDT-FUTURES" as const,
+          symbol: symbol,
+          marginCoin: "USDT"
+        };
+        return await rest.getFuturesPosition(params);
+      },
+      // Approach 2: Try with common symbols if no symbol specified
+      async () => {
+        const targetSymbol = symbol || "BTCUSDT"; // Default to BTCUSDT
+        const params = {
+          productType: "USDT-FUTURES" as const,
+          symbol: targetSymbol,
+          marginCoin: "USDT"
+        };
+        return await rest.getFuturesPosition(params);
+      },
+      // Approach 3: Try with different symbols to find any positions
+      async () => {
+        const symbols = ['BTCUSDT', 'ETHUSDT', 'BNBUSDT'];
+        for (const testSymbol of symbols) {
+          try {
+            const params = {
+              productType: "USDT-FUTURES" as const,
+              symbol: testSymbol,
+              marginCoin: "USDT"
+            };
+            const result = await rest.getFuturesPosition(params);
+            if (result.data && result.data.length > 0) {
+              return result;
+            }
+          } catch {
+            continue;
+          }
+        }
+        // Return empty if no positions found
+        return { data: [] };
+      }
+    ];
+
+    let lastError: any;
+    for (const [index, approach] of approaches.entries()) {
+      try {
+        const result = await approach();
+        const positions = Array.isArray(result.data) ? result.data : [];
+        
+        logger.info(`✅ Retrieved ${positions.length} positions (method ${index + 1})`);
+        
+        // Filter out positions with zero size if we have positions
+        const activePositions = positions.filter((pos: any) => {
+          const size = Math.abs(parseFloat(pos.size || '0'));
+          return size > 0.001; // Filter out dust positions
+        });
+        
+        logger.info(`📊 Active positions: ${activePositions.length}/${positions.length}`);
+        return { data: activePositions };
+        
+      } catch (error: any) {
+        lastError = error;
+        logger.warn(`⚠️ Position retrieval method ${index + 1} failed: ${error.message}`);
+        continue;
+      }
+    }
     
-    const result = await rest.getFuturesPosition(params);
-    logger.info(`✅ Retrieved ${result.data.length} positions`);
+    // If all methods fail, return empty positions instead of throwing
+    logger.warn(`⚠️ All position retrieval methods failed. Returning empty positions.`);
+    logger.warn(`Last error: ${lastError?.message || 'Unknown error'}`);
     
-    return { data: result.data };
+    // Return empty positions to allow the bot to continue
+    return { data: [] };
+    
   } catch (error: any) {
-    logger.error(`❌ Failed to get positions:`, error.message);
-    throw error;
+    logger.error(`❌ Failed to get positions:`, {
+      message: error.message,
+      code: error.code,
+      details: error.response?.data || 'No additional details'
+    });
+    
+    // Don't throw error, return empty positions to allow bot to continue
+    logger.info(`💡 Continuing with empty positions to allow bot operation`);
+    return { data: [] };
   }
 };
 

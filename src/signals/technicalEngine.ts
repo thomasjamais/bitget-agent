@@ -49,6 +49,7 @@ export class TechnicalAnalysisEngine {
       
     } catch (error) {
       this.logger.error(`Error in technical analysis for ${symbol}: ${error}`);
+      this.logger.error({ error, symbol }, `🔴 FULL TECHNICAL ANALYSIS ERROR`);
       return null;
     }
   }

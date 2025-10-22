@@ -59,6 +59,7 @@ export class EnhancedAIEngine extends AIEngine {
   async initialize(): Promise<void> {
     try {
       logger.info('🧠 Initializing Enhanced AI Engine...');
+      logger.info('📊 ENHANCED AI CONFIG:', { newsEngine: !!this.newsEngine });
 
       // Load base AI engine
       await super.load();
@@ -67,6 +68,7 @@ export class EnhancedAIEngine extends AIEngine {
       await this.newsEngine.initialize();
 
       logger.info('✅ Enhanced AI Engine initialized successfully');
+      logger.info('📊 ENHANCED AI FINAL STATE:', { newsEngineReady: !!this.newsEngine });
 
     } catch (error) {
       logger.error('❌ Failed to initialize Enhanced AI Engine:', error);
