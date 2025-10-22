@@ -279,28 +279,39 @@ export class PortfolioTransfer {
   private async executeTransferAPI(transferParams: any): Promise<any> {
     try {
       this.logger.info("🔄 Executing real Bitget transfer API call");
+      this.logger.info("📤 Transfer parameters:", transferParams);
       
-      // Get API credentials
+      // Note: REST client doesn't have a transfer method, using direct HTTP call
+      
+      // Fallback to direct HTTP call with proper Bitget signature
       const { apiKey, apiSecret, apiPassphrase } = this.apiCredentials;
       
       if (!apiKey || !apiSecret || !apiPassphrase) {
         throw new Error("API credentials not available");
       }
       
-      // Create timestamp and signature for the request
+      // Use the correct Bitget signature format
       const timestamp = Date.now().toString();
       const method = 'POST';
       const requestPath = '/api/v2/spot/wallet/transfer';
       const body = JSON.stringify(transferParams);
       
-      // Create signature (simplified - in production, use proper HMAC-SHA256)
+      // Bitget signature format: timestamp + method + requestPath + body
       const message = timestamp + method + requestPath + body;
       const signature = require('crypto')
         .createHmac('sha256', apiSecret)
         .update(message)
         .digest('base64');
       
-      // Make the API call
+      this.logger.info("🔐 Signature details:", {
+        timestamp,
+        method,
+        requestPath,
+        body,
+        signature: signature.substring(0, 10) + "..."
+      });
+      
+      // Make the API call with proper headers
       const response = await axios.post(
         `https://api.bitget.com${requestPath}`,
         transferParams,
@@ -312,21 +323,40 @@ export class PortfolioTransfer {
             'ACCESS-PASSPHRASE': apiPassphrase,
             'Content-Type': 'application/json',
             'locale': 'en-US'
-          }
+          },
+          timeout: 10000 // 10 second timeout
         }
       );
+      
+      this.logger.info("📥 Transfer response:", response.data);
       
       if (response.data && response.data.code === '00000') {
         this.logger.info(`✅ Real transfer successful:`, response.data);
         return response.data;
       } else {
+        this.logger.error(`❌ Transfer API error:`, {
+          code: response.data?.code,
+          msg: response.data?.msg,
+          data: response.data
+        });
         throw new Error(`Transfer failed: ${response.data?.msg || 'Unknown error'}`);
       }
     } catch (error: any) {
-      this.logger.error("❌ Real transfer failed, trying alternative method:", error.message);
+      this.logger.error("❌ Real transfer failed, trying alternative method:", {
+        message: error.message,
+        response: error.response?.data,
+        status: error.response?.status,
+        config: {
+          url: error.config?.url,
+          method: error.config?.method,
+          data: error.config?.data
+        }
+      });
       
-      // Try alternative transfer method
+      // Try alternative transfer method with different endpoint
       try {
+        this.logger.info("🔄 Trying alternative transfer endpoint");
+        
         const timestamp = Date.now().toString();
         const method = 'POST';
         const requestPath = '/api/v2/mix/account/transfer';
@@ -349,16 +379,34 @@ export class PortfolioTransfer {
               'ACCESS-PASSPHRASE': this.apiCredentials.apiPassphrase,
               'Content-Type': 'application/json',
               'locale': 'en-US'
-            }
+            },
+            timeout: 10000
           }
         );
+        
+        this.logger.info("📥 Alternative transfer response:", response.data);
         
         if (response.data && response.data.code === '00000') {
           this.logger.info(`✅ Alternative transfer successful:`, response.data);
           return response.data;
+        } else {
+          this.logger.error(`❌ Alternative transfer API error:`, {
+            code: response.data?.code,
+            msg: response.data?.msg,
+            data: response.data
+          });
         }
       } catch (altError: any) {
-        this.logger.error("❌ Alternative transfer also failed:", altError.message);
+        this.logger.error("❌ Alternative transfer also failed:", {
+          message: altError.message,
+          response: altError.response?.data,
+          status: altError.response?.status,
+          config: {
+            url: altError.config?.url,
+            method: altError.config?.method,
+            data: altError.config?.data
+          }
+        });
       }
       
       // If all real methods fail, fall back to simulation

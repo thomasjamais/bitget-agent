@@ -108,9 +108,9 @@ class BitgetTradingBot {
       // 📊 Initialize portfolio transfer system
       this.logger.info("🔄 Initializing dual portfolio system...");
       this.portfolioTransfer = new PortfolioTransfer(this.rest, {
-        apiKey: process.env.BITGET_API_KEY || '',
-        apiSecret: process.env.BITGET_API_SECRET || '',
-        apiPassphrase: process.env.BITGET_API_PASSPHRASE || ''
+        apiKey: process.env.BITGET_API_KEY || "",
+        apiSecret: process.env.BITGET_API_SECRET || "",
+        apiPassphrase: process.env.BITGET_API_PASSPHRASE || "",
       });
       this.logger.info("✅ Portfolio transfer system initialized");
 
