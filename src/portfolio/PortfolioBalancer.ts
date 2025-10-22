@@ -43,18 +43,13 @@ export class PortfolioBalancer {
   constructor() {
     this.config = {
       symbols: [
-        'BTCUSDT', 'ETHUSDT', 'BNBUSDT', 'SOLUSDT',
-        'ADAUSDT', 'AVAXUSDT', 'MATICUSDT', 'DOTUSDT'
+        'BTCUSDT', 'ETHUSDT', 'BNBUSDT', 'MATICUSDT'
       ],
       targetAllocations: {
         'BTCUSDT': 0.30,    // 30% - King of crypto
         'ETHUSDT': 0.25,    // 25% - Smart contracts leader  
-        'BNBUSDT': 0.15,    // 15% - Exchange ecosystem
-        'SOLUSDT': 0.10,    // 10% - High performance blockchain
-        'ADAUSDT': 0.08,    // 8% - Academic approach
-        'AVAXUSDT': 0.07,   // 7% - Avalanche ecosystem
-        'MATICUSDT': 0.03,  // 3% - Polygon scaling
-        'DOTUSDT': 0.02     // 2% - Polkadot interoperability
+        'BNBUSDT': 0.42,    // 42% - Exchange ecosystem
+        'MATICUSDT': 0.03   // 3% - Polygon scaling
       },
       rebalanceThreshold: 0.05, // 5% deviation triggers rebalance
       minTradeAmount: 10,       // Minimum $10 USDT trade

@@ -105,15 +105,11 @@ export function PortfolioControls({
     // If no allocations available, use default ones
     const allocations = portfolio?.allocations && portfolio.allocations.length > 0 
       ? portfolio.allocations 
-      : [
+        : [
           { symbol: 'BTCUSDT', target: 0.30, current: 0, deviation: 0, status: 'BALANCED' as const },
           { symbol: 'ETHUSDT', target: 0.25, current: 0, deviation: 0, status: 'BALANCED' as const },
-          { symbol: 'BNBUSDT', target: 0.15, current: 0, deviation: 0, status: 'BALANCED' as const },
-          { symbol: 'SOLUSDT', target: 0.10, current: 0, deviation: 0, status: 'BALANCED' as const },
-          { symbol: 'ADAUSDT', target: 0.08, current: 0, deviation: 0, status: 'BALANCED' as const },
-          { symbol: 'AVAXUSDT', target: 0.07, current: 0, deviation: 0, status: 'BALANCED' as const },
-          { symbol: 'MATICUSDT', target: 0.03, current: 0, deviation: 0, status: 'BALANCED' as const },
-          { symbol: 'DOTUSDT', target: 0.02, current: 0, deviation: 0, status: 'BALANCED' as const }
+          { symbol: 'BNBUSDT', target: 0.42, current: 0, deviation: 0, status: 'BALANCED' as const },
+          { symbol: 'MATICUSDT', target: 0.03, current: 0, deviation: 0, status: 'BALANCED' as const }
         ];
     
     allocations.forEach(alloc => {
@@ -310,15 +306,11 @@ export function PortfolioControls({
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 mb-4">
               {(portfolio?.allocations && portfolio.allocations.length > 0 
                 ? portfolio.allocations 
-                : [
+                :                   [
                     { symbol: 'BTCUSDT', target: 0.30, current: 0, deviation: 0, status: 'BALANCED' as const },
                     { symbol: 'ETHUSDT', target: 0.25, current: 0, deviation: 0, status: 'BALANCED' as const },
-                    { symbol: 'BNBUSDT', target: 0.15, current: 0, deviation: 0, status: 'BALANCED' as const },
-                    { symbol: 'SOLUSDT', target: 0.10, current: 0, deviation: 0, status: 'BALANCED' as const },
-                    { symbol: 'ADAUSDT', target: 0.08, current: 0, deviation: 0, status: 'BALANCED' as const },
-                    { symbol: 'AVAXUSDT', target: 0.07, current: 0, deviation: 0, status: 'BALANCED' as const },
-                    { symbol: 'MATICUSDT', target: 0.03, current: 0, deviation: 0, status: 'BALANCED' as const },
-                    { symbol: 'DOTUSDT', target: 0.02, current: 0, deviation: 0, status: 'BALANCED' as const }
+                    { symbol: 'BNBUSDT', target: 0.42, current: 0, deviation: 0, status: 'BALANCED' as const },
+                    { symbol: 'MATICUSDT', target: 0.03, current: 0, deviation: 0, status: 'BALANCED' as const }
                   ]
               ).map((allocation) => (
               <div key={allocation.symbol} className="bg-white dark:bg-gray-800 p-3 rounded-lg border border-gray-200 dark:border-gray-600">

@@ -47,21 +47,13 @@ export class BotWebSocketAdapter {
       "BTCUSDT",
       "ETHUSDT",
       "BNBUSDT",
-      "SOLUSDT",
-      "ADAUSDT",
-      "AVAXUSDT",
       "MATICUSDT",
-      "DOTUSDT",
     ];
     const targets: Record<string, number> = config.targetAllocations || {
       BTCUSDT: 0.3,
       ETHUSDT: 0.25,
-      BNBUSDT: 0.15,
-      SOLUSDT: 0.1,
-      ADAUSDT: 0.08,
-      AVAXUSDT: 0.07,
+      BNBUSDT: 0.42,
       MATICUSDT: 0.03,
-      DOTUSDT: 0.02,
     };
 
     symbols.forEach((symbol: string) => {

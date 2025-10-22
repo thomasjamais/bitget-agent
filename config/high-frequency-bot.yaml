@@ -64,7 +64,7 @@ instructions:
 # ULTRA-HIGH FREQUENCY MARKET DATA
 marketData:
   enabled: true
-  symbols: ["BTCUSDT", "ETHUSDT", "BNBUSDT", "SOLUSDT"]  # Focused on most liquid pairs
+  symbols: ["BTCUSDT", "ETHUSDT", "BNBUSDT", "MATICUSDT"]  # Focused on most liquid pairs
   defaultTimeframe: "1m"
   maxHistoryBars: 500     # More history for better analysis
   reconnect:
@@ -75,12 +75,12 @@ marketData:
 
 # OPTIMIZED PORTFOLIO FOR HIGH FREQUENCY
 portfolio:
-  symbols: ["BTCUSDT", "ETHUSDT", "BNBUSDT", "SOLUSDT"]
+  symbols: ["BTCUSDT", "ETHUSDT", "BNBUSDT", "MATICUSDT"]
   targetAllocations:
     BTCUSDT: 0.40      # 40% - Most liquid
     ETHUSDT: 0.35      # 35% - Second most liquid
     BNBUSDT: 0.15      # 15% - Exchange coin
-    SOLUSDT: 0.10      # 10% - High performance chain
+    MATICUSDT: 0.10    # 10% - Layer 2 scaling
   rebalanceThreshold: 0.02  # 2% deviation (more sensitive)
   minTradeAmount: 5         # Lower minimum for micro-trades
   maxTradeAmount: 500       # Lower maximum for risk management

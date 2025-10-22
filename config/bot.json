@@ -52,12 +52,11 @@
       "name": "Altcoin Swing Trading",
       "description": "Medium-term swing trades on major altcoins",
       "enabled": true,
-      "symbols": [
-        "ETHUSDT",
-        "ADAUSDT",
-        "SOLUSDT",
-        "AVAXUSDT"
-      ],
+    "symbols": [
+      "ETHUSDT",
+      "BNBUSDT",
+      "MATICUSDT"
+    ],
       "timeframes": [
         "15m",
         "1h"
@@ -120,10 +119,8 @@
     "symbols": [
       "BTCUSDT",
       "ETHUSDT",
-      "ADAUSDT",
-      "SOLUSDT",
-      "AVAXUSDT",
-      "BNBUSDT"
+      "BNBUSDT",
+      "MATICUSDT"
     ],
     "defaultTimeframe": "5m",
     "reconnect": {

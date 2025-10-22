@@ -44,7 +44,7 @@ instructions:
     name: "Bollinger Bands Mean Reversion"
     description: "Buy at lower band, sell at upper band with RSI confirmation"
     enabled: true
-    symbols: ["BTCUSDT", "ETHUSDT", "SOLUSDT"]
+    symbols: ["BTCUSDT", "ETHUSDT", "MATICUSDT"]
     timeframes: ["5m", "15m"]
     direction: "both"
     risk:
@@ -74,7 +74,7 @@ instructions:
     name: "Triple Indicator Trend Following"
     description: "Strong trend signals when RSI, MACD, and BB all align"
     enabled: true
-    symbols: ["BTCUSDT", "ETHUSDT", "BNBUSDT", "ADAUSDT"]
+    symbols: ["BTCUSDT", "ETHUSDT", "BNBUSDT", "MATICUSDT"]
     timeframes: ["1h", "4h"]
     direction: "both"
     risk:
@@ -136,7 +136,7 @@ instructions:
     name: "Bollinger Bands Breakout Scalping"
     description: "Trade breakouts from BB squeeze with volume and RSI momentum"
     enabled: true
-    symbols: ["BTCUSDT", "ETHUSDT", "SOLUSDT", "AVAXUSDT"]
+    symbols: ["BTCUSDT", "ETHUSDT", "BNBUSDT", "MATICUSDT"]
     timeframes: ["1m", "3m", "5m"]
     direction: "both"
     risk:
@@ -205,15 +205,11 @@ globalRisk:
 
 # Market Data Configuration
 marketData:
-  symbols: 
+  symbols:
     - "BTCUSDT"
     - "ETHUSDT"
-    - "BNBUSDT" 
-    - "SOLUSDT"
-    - "ADAUSDT"
-    - "AVAXUSDT"
+    - "BNBUSDT"
     - "MATICUSDT"
-    - "DOTUSDT"
   defaultTimeframe: "15m"
   reconnect:
     maxAttempts: 10

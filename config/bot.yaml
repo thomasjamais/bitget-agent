@@ -212,7 +212,7 @@ globalRisk:
 # Market Data Configuration - OPTIMIZED FOR BEST REFRESH RATE
 marketData:
   enabled: true
-  symbols: ["BTCUSDT", "ETHUSDT", "BNBUSDT", "SOLUSDT", "ADAUSDT", "AVAXUSDT", "MATICUSDT", "DOTUSDT"]
+  symbols: ["BTCUSDT", "ETHUSDT", "BNBUSDT", "MATICUSDT"]
   defaultTimeframe: "1m"  # Changed from 15m to 1m for maximum responsiveness
   maxHistoryBars: 200     # Increased for better analysis with shorter timeframes
   reconnect:
@@ -223,16 +223,12 @@ marketData:
 
 # Portfolio Balancing Configuration
 portfolio:
-  symbols: ["BTCUSDT", "ETHUSDT", "BNBUSDT", "SOLUSDT", "ADAUSDT", "AVAXUSDT", "MATICUSDT", "DOTUSDT"]
+  symbols: ["BTCUSDT", "ETHUSDT", "BNBUSDT", "MATICUSDT"]
   targetAllocations:
     BTCUSDT: 0.30      # 30% - Bitcoin (flagship crypto)
     ETHUSDT: 0.25      # 25% - Ethereum (smart contracts)
-    BNBUSDT: 0.15      # 15% - BNB (exchange ecosystem)
-    SOLUSDT: 0.10      # 10% - Solana (high performance)
-    ADAUSDT: 0.08      # 8% - Cardano (academic approach)
-    AVAXUSDT: 0.07     # 7% - Avalanche (avalanche consensus)
+    BNBUSDT: 0.42      # 42% - BNB (exchange ecosystem)
     MATICUSDT: 0.03    # 3% - Polygon (layer 2 scaling)
-    DOTUSDT: 0.02      # 2% - Polkadot (interoperability)
   rebalanceThreshold: 0.05  # 5% deviation triggers rebalance
   minTradeAmount: 10        # Minimum $10 USDT trade
   maxTradeAmount: 1000      # Maximum $1000 USDT per rebalance

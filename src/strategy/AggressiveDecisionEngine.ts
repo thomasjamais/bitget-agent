@@ -66,12 +66,8 @@ export class AggressiveDecisionEngine {
       const customWeights = {
         BTCUSDT: 0.3, // 30% BTC (flagship crypto)
         ETHUSDT: 0.25, // 25% ETH (smart contracts leader)
-        BNBUSDT: 0.15, // 15% BNB (exchange token)
-        SOLUSDT: 0.1, // 10% SOL (fast blockchain)
-        ADAUSDT: 0.08, // 8% ADA (academic approach)
-        AVAXUSDT: 0.07, // 7% AVAX (fast finality)
+        BNBUSDT: 0.42, // 42% BNB (exchange token)
         MATICUSDT: 0.03, // 3% MATIC (scaling solution)
-        DOTUSDT: 0.02, // 2% DOT (interoperability)
       };
 
       for (const symbol of symbols) {

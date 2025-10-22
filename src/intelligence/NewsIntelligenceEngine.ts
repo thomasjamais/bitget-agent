@@ -141,7 +141,7 @@ export class NewsIntelligenceEngine {
     cron.schedule('*/5 * * * *', async () => {
       try {
         logger.info('🔄 Scheduled news update starting...');
-        const symbols = ['BTCUSDT', 'ETHUSDT', 'BNBUSDT', 'SOLUSDT', 'ADAUSDT', 'AVAXUSDT', 'MATICUSDT', 'DOTUSDT'];
+        const symbols = ['BTCUSDT', 'ETHUSDT', 'BNBUSDT', 'MATICUSDT'];
         
         for (const symbol of symbols) {
           await this.fetchAndAnalyzeNews(symbol.replace('USDT', ''));

@@ -553,11 +553,7 @@ class BitgetTradingBot {
         'BTCUSDT': 65000,
         'ETHUSDT': 2600,
         'BNBUSDT': 580,
-        'SOLUSDT': 160,
-        'ADAUSDT': 0.35,
-        'AVAXUSDT': 27,
-        'MATICUSDT': 0.42,
-        'DOTUSDT': 4.2
+        'MATICUSDT': 0.42
       };
       
       for (const symbol of config.marketData.symbols) {
