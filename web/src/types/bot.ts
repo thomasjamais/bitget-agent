@@ -29,6 +29,26 @@ export interface Portfolio {
   allocations: Allocation[];
   rebalanceNeeded: boolean;
   lastRebalance: number;
+  dualPortfolio?: {
+    spot: SpotPortfolioData;
+    futures: FuturesPortfolioData;
+  };
+}
+
+export interface SpotPortfolioData {
+  USDT: number;
+  BTC: number;
+  ETH: number;
+  BNB: number;
+  MATIC: number;
+  totalValue: number;
+}
+
+export interface FuturesPortfolioData {
+  USDT: number;
+  totalEquity: number;
+  availableBalance: number;
+  totalValue: number;
 }
 
 export interface Position {

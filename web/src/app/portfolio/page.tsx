@@ -3,6 +3,8 @@
 import { useState, useEffect } from "react";
 import { useWebSocket } from "@/hooks/useWebSocket";
 import { BotData } from "@/types/bot";
+import { SpotPortfolio } from "@/components/SpotPortfolio";
+import { FuturesPortfolio } from "@/components/FuturesPortfolio";
 
 export default function PortfolioPage() {
   const [botData, setBotData] = useState<BotData | null>(null);
@@ -60,6 +62,12 @@ export default function PortfolioPage() {
             {isConnected ? "✅ Live Data" : "🔌 Disconnected"}
           </span>
         </div>
+      </div>
+
+      {/* Dual Portfolio System */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+        <SpotPortfolio data={botData?.portfolio?.dualPortfolio?.spot || null} />
+        <FuturesPortfolio data={botData?.portfolio?.dualPortfolio?.futures || null} />
       </div>
 
       {/* Portfolio Overview Cards */}
