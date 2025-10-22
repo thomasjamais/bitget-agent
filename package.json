@@ -1,0 +1,81 @@
+{
+  "name": "bitget-trading-bot",
+  "version": "1.0.0",
+  "description": "TypeScript-based automated trading bot for Bitget exchange with comprehensive configuration management",
+  "main": "dist/index.js",
+  "type": "module",
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsx watch src/index.ts",
+    "start": "node dist/index.js",
+    "test:technical": "tsx examples/test-technical-analysis.ts",
+    "test:orders": "tsx examples/test-real-orders.ts",
+    "test:ai": "tsx scripts/test-ai.ts",
+    "test:enhanced-ai": "tsx scripts/test-enhanced-ai.ts",
+    "test:aggressive": "tsx scripts/test-aggressive-trading.ts",
+    "test:trading": "tsx scripts/test-real-trading.ts",
+    "create:mock-model": "tsx scripts/create-mock-model.ts",
+    "lint": "eslint src --ext .ts",
+    "lint:fix": "eslint src --ext .ts --fix",
+    "test": "jest",
+    "clean": "rimraf dist",
+    "web:install": "cd web && npm install",
+    "web:dev": "cd web && npm run dev",
+    "web:build": "cd web && npm run build",
+    "web:start": "cd web && npm start",
+    "dev:full": "concurrently \"npm run dev\" \"npm run web:dev\" --names \"BOT,WEB\" --prefix-colors \"blue,green\""
+  },
+  "keywords": [
+    "bitget",
+    "trading",
+    "bot",
+    "cryptocurrency",
+    "typescript",
+    "futures",
+    "algorithmic-trading"
+  ],
+  "author": "Your Name",
+  "license": "MIT",
+  "dependencies": {
+    "@tensorflow/tfjs-node": "^4.22.0",
+    "ajv": "^8.12.0",
+    "ajv-formats": "^2.1.1",
+    "axios": "^1.12.2",
+    "bitget-api": "^3.0.7",
+    "dotenv": "^16.3.1",
+    "fs-extra": "^11.3.2",
+    "js-yaml": "^4.1.0",
+    "node-cron": "^3.0.3",
+    "onnxruntime-node": "^1.23.0",
+    "openai": "^4.104.0",
+    "pino": "^8.16.2",
+    "pino-pretty": "^10.2.3",
+    "ws": "^8.16.0",
+    "concurrently": "^8.2.0"
+  },
+  "devDependencies": {
+    "@types/jest": "^29.5.8",
+    "@types/js-yaml": "^4.0.9",
+    "@types/ws": "^8.5.10",
+    "concurrently": "^8.2.0",
+    "@types/node": "^20.8.10",
+    "@typescript-eslint/eslint-plugin": "^6.10.0",
+    "@typescript-eslint/parser": "^6.10.0",
+    "eslint": "^8.53.0",
+    "jest": "^29.7.0",
+    "rimraf": "^5.0.5",
+    "tsx": "^4.1.4",
+    "typescript": "^5.2.2"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/yourusername/bitget-trading-bot.git"
+  },
+  "bugs": {
+    "url": "https://github.com/yourusername/bitget-trading-bot/issues"
+  },
+  "homepage": "https://github.com/yourusername/bitget-trading-bot#readme"
+}

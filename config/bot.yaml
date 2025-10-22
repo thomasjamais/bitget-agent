@@ -1,0 +1,298 @@
+# RSI + MACD + Bollinger Bands Trading Strategies
+
+# Trading Configuration
+trading:
+  enabled: true           # 🚀 ENABLE LIVE TRADING
+  mode: "live"           # live, paper, or dry-run
+  confirmTrades: false   # Set to true to require manual confirmation
+
+api:
+  key: "bg_0b2ec9944060a0c28ff6be0f11d937b8"
+  secret: "400f05ea3920becfdb59c0242ebbb96213c32632262dfcb050b2881a18dad460"
+  passphrase: "08072002"
+  useTestnet: true
+
+# Technical Indicator Based Trading Strategies
+instructions:
+  # Strategy 1: RSI Oversold/Overbought with MACD Confirmation
+  - id: "rsi-macd-reversal"
+    name: "RSI-MACD Reversal Strategy"
+    description: "Buy on RSI oversold + MACD bullish crossover, sell on RSI overbought + MACD bearish crossover"
+    enabled: true
+    symbols: ["BTCUSDT", "ETHUSDT", "BNBUSDT"]
+    timeframes: ["15m", "1h"]
+    direction: "both"
+    risk:
+      maxRiskPerTrade: 1.5
+      maxLeverage: 5
+      maxPositionsPerSymbol: 1
+      maxTotalPositions: 3
+      stopLossPercent: 2.5
+      takeProfitPercent: 6.0
+    signals:
+      minConfidence: 0.75
+      cooldownMs: 1800000  # 30 minutes
+    parameters:
+      # RSI Settings
+      rsiPeriod: 14
+      rsiOversold: 30
+      rsiOverbought: 70
+      # MACD Settings  
+      macdFast: 12
+      macdSlow: 26
+      macdSignal: 9
+      # Entry Conditions
+      requireMacdCrossover: true
+      requireRsiExtreme: true
+
+  # Strategy 2: Bollinger Bands Mean Reversion
+  - id: "bb-mean-reversion"
+    name: "Bollinger Bands Mean Reversion"
+    description: "Buy at lower band, sell at upper band with RSI confirmation"
+    enabled: true
+    symbols: ["BTCUSDT", "ETHUSDT", "BNBUSDT"]
+    timeframes: ["5m", "15m"]
+    direction: "both"
+    risk:
+      maxRiskPerTrade: 1.0
+      maxLeverage: 8
+      maxPositionsPerSymbol: 2
+      maxTotalPositions: 4
+      stopLossPercent: 1.5
+      takeProfitPercent: 3.0
+    signals:
+      minConfidence: 0.7
+      cooldownMs: 900000   # 15 minutes
+    parameters:
+      # Bollinger Bands Settings
+      bbPeriod: 20
+      bbStdDev: 2.0
+      # RSI Confirmation
+      rsiPeriod: 14
+      rsiOversoldConfirm: 40
+      rsiOverboughtConfirm: 60
+      # Entry Logic
+      requireBbTouch: true
+      requireRsiConfirmation: true
+
+  # Strategy 3: Triple Indicator Trend Following
+  - id: "triple-trend-follow"
+    name: "Triple Indicator Trend Following"
+    description: "Strong trend signals when RSI, MACD, and BB all align"
+    enabled: true
+    symbols: ["BTCUSDT", "ETHUSDT", "BNBUSDT"]
+    timeframes: ["1h", "4h"]
+    direction: "both"
+    risk:
+      maxRiskPerTrade: 2.0
+      maxLeverage: 3
+      maxPositionsPerSymbol: 1
+      maxTotalPositions: 2
+      stopLossPercent: 4.0
+      takeProfitPercent: 12.0
+    signals:
+      minConfidence: 0.8
+      cooldownMs: 7200000  # 2 hours
+    schedule:
+      daysOfWeek: [1, 2, 3, 4, 5]  # Weekdays only
+    parameters:
+      # All Indicator Settings
+      rsiPeriod: 14
+      macdFast: 12
+      macdSlow: 26
+      macdSignal: 9
+      bbPeriod: 20
+      bbStdDev: 2.0
+      # Trend Conditions
+      rsiTrendUp: 60     # RSI above 60 for uptrend
+      rsiTrendDown: 40   # RSI below 40 for downtrend
+      requireAllAligned: true
+
+  # Strategy 4: RSI Divergence with MACD
+  - id: "rsi-macd-divergence"
+    name: "RSI-MACD Divergence Strategy"
+    description: "Trade divergences between price and RSI confirmed by MACD"
+    enabled: false  # Advanced strategy - enable after testing
+    symbols: ["BTCUSDT", "ETHUSDT", "BNBUSDT"]
+    timeframes: ["1h", "4h"]
+    direction: "both"
+    risk:
+      maxRiskPerTrade: 2.5
+      maxLeverage: 4
+      maxPositionsPerSymbol: 1
+      maxTotalPositions: 1
+      stopLossPercent: 3.0
+      takeProfitPercent: 8.0
+    signals:
+      minConfidence: 0.85
+      cooldownMs: 14400000  # 4 hours
+    parameters:
+      # Divergence Detection
+      rsiPeriod: 14
+      lookbackPeriod: 50
+      divergenceThreshold: 0.15
+      # MACD Confirmation
+      macdFast: 12
+      macdSlow: 26
+      macdSignal: 9
+      requireMacdConfirmation: true
+
+  # Strategy 5: Bollinger Bands Breakout
+  - id: "bb-breakout-scalp"
+    name: "Bollinger Bands Breakout Scalping"
+    description: "Trade breakouts from BB squeeze with volume and RSI momentum"
+    enabled: true
+    symbols: ["BTCUSDT", "ETHUSDT", "BNBUSDT"]
+    timeframes: ["1m", "3m", "5m"]
+    direction: "both"
+    risk:
+      maxRiskPerTrade: 0.8
+      maxLeverage: 15
+      maxPositionsPerSymbol: 3
+      maxTotalPositions: 8
+      stopLossPercent: 0.5
+      takeProfitPercent: 1.2
+    signals:
+      minConfidence: 0.8
+      cooldownMs: 180000   # 3 minutes
+    parameters:
+      # Bollinger Bands
+      bbPeriod: 20
+      bbStdDev: 2.0
+      squeezePeriod: 10
+      squeezeThreshold: 0.02  # 2% band width
+      # Momentum Confirmation
+      rsiPeriod: 14
+      rsiMomentumUp: 55
+      rsiMomentumDown: 45
+      volumeMultiplier: 1.5
+      # Breakout Logic
+      breakoutStrength: 0.003  # 0.3% move required
+
+  # Strategy 6: MACD Histogram Momentum
+  - id: "macd-histogram-momentum"
+    name: "MACD Histogram Momentum"
+    description: "Trade MACD histogram momentum with Bollinger Bands position filter"
+    enabled: true
+    symbols: ["BTCUSDT", "ETHUSDT", "BNBUSDT"]
+    timeframes: ["15m", "30m", "1h"]
+    direction: "both"
+    risk:
+      maxRiskPerTrade: 1.2
+      maxLeverage: 6
+      maxPositionsPerSymbol: 2
+      maxTotalPositions: 4
+      stopLossPercent: 2.0
+      takeProfitPercent: 4.5
+    signals:
+      minConfidence: 0.72
+      cooldownMs: 1800000  # 30 minutes
+    parameters:
+      # MACD Settings
+      macdFast: 12
+      macdSlow: 26
+      macdSignal: 9
+      histogramThreshold: 0.001
+      # Bollinger Filter
+      bbPeriod: 20
+      bbStdDev: 2.0
+      bbPositionFilter: true  # Only trade when price is in middle 60% of BB
+      # RSI Filter
+      rsiPeriod: 14
+      rsiMinUp: 45    # Don't buy if RSI < 45
+      rsiMaxDown: 55  # Don't sell if RSI > 55
+
+# Global Risk Management
+globalRisk:
+  maxEquityRisk: 12.0
+  maxDailyLoss: 4.0
+  maxConsecutiveLosses: 4
+  sizingMethod: "volatility"
+
+# Market Data Configuration
+marketData:
+  enabled: true
+  symbols: ["BTCUSDT", "ETHUSDT", "BNBUSDT", "SOLUSDT", "ADAUSDT", "AVAXUSDT", "MATICUSDT", "DOTUSDT"]
+  defaultTimeframe: "15m"
+  maxHistoryBars: 100
+  reconnect:
+    enabled: true
+    maxAttempts: 5
+    delayMs: 5000
+    backoffMultiplier: 2.0
+
+# Portfolio Balancing Configuration
+portfolio:
+  symbols: ["BTCUSDT", "ETHUSDT", "BNBUSDT", "SOLUSDT", "ADAUSDT", "AVAXUSDT", "MATICUSDT", "DOTUSDT"]
+  targetAllocations:
+    BTCUSDT: 0.30      # 30% - Bitcoin (flagship crypto)
+    ETHUSDT: 0.25      # 25% - Ethereum (smart contracts)
+    BNBUSDT: 0.15      # 15% - BNB (exchange ecosystem)
+    SOLUSDT: 0.10      # 10% - Solana (high performance)
+    ADAUSDT: 0.08      # 8% - Cardano (academic approach)
+    AVAXUSDT: 0.07     # 7% - Avalanche (avalanche consensus)
+    MATICUSDT: 0.03    # 3% - Polygon (layer 2 scaling)
+    DOTUSDT: 0.02      # 2% - Polkadot (interoperability)
+  rebalanceThreshold: 0.05  # 5% deviation triggers rebalance
+  minTradeAmount: 10        # Minimum $10 USDT trade
+  maxTradeAmount: 1000      # Maximum $1000 USDT per rebalance
+  rebalanceInterval: 6      # Hours between rebalances
+
+# Aggressive Trading Configuration
+aggressiveTrading:
+  enabled: true
+  minConfidence: 0.35       # Lower threshold for opportunities (35%)
+  minExpectedReturn: 0.5    # Minimum 0.5% expected return
+  maxDailyTrades: 15        # Up to 15 trades per symbol per day
+  maxConcurrentTrades: 3    # Maximum 3 concurrent aggressive trades
+  maxRiskPercent: 2.0       # 2% risk per trade
+  maxLeverage: 10           # Maximum 10x leverage
+  dynamicStopLoss: true     # Use dynamic stop loss based on risk score
+  portfolioRebalancing: true # Enable automatic rebalancing# AI Configuration for Technical Indicators
+ai:
+  engines:
+    - name: "rsi-engine"
+      enabled: true
+      parameters:
+        period: 14
+        overbought: 70
+        oversold: 30
+        
+    - name: "macd-engine"
+      enabled: true
+      parameters:
+        fastPeriod: 12
+        slowPeriod: 26
+        signalPeriod: 9
+        
+    - name: "bollinger-engine"
+      enabled: true
+      parameters:
+        period: 20
+        stdDev: 2.0
+        
+    - name: "volume-engine"
+      enabled: true
+      parameters:
+        smaLength: 20
+        volumeThreshold: 1.5
+
+    - name: "technical-consensus"
+      enabled: true
+      parameters:
+        requiredAgreement: 2  # At least 2 indicators must agree
+        
+  consensusThreshold: 2
+
+# Logging Configuration
+logging:
+  level: "info"
+  file: "logs/technical-strategies.log" 
+  maxFiles: 14
+  maxSize: "25MB"
+
+# Notifications
+notifications:
+  enabled: true
+  webhooks:
+    - "https://discord.com/api/webhooks/YOUR/TECHNICAL/WEBHOOK"

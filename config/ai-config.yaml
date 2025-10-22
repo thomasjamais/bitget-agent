@@ -1,0 +1,78 @@
+ai:
+  # AI Engine Configuration
+  engine:
+    enabled: true
+    defaultModel: "simple"
+    fallbackModel: "simple"
+    
+  # Model Loading Configuration  
+  models:
+    simple:
+      type: "rule-based"
+      enabled: true
+      description: "Basic technical analysis rules"
+      
+    momentum:
+      type: "onnx" 
+      enabled: true
+      path: "./models/simple-momentum.onnx"
+      description: "ONNX momentum-based trading model"
+      
+    lstm:
+      type: "onnx"
+      enabled: false  # Set to true when model is available
+      path: "./models/advanced-lstm.onnx" 
+      description: "Advanced LSTM model for sequential pattern recognition"
+      
+  # Model Input/Output Configuration
+  preprocessing:
+    priceNormalization: true
+    volumeNormalization: true
+    indicatorScaling: true
+    sequenceLength: 20
+    
+  # Prediction Configuration
+  prediction:
+    confidenceThreshold: 0.6
+    riskThreshold: 0.8
+    ensembleVoting: false
+    
+  # Performance Monitoring
+  monitoring:
+    trackPredictions: true
+    logConfidence: true
+    validateInputs: true
+    
+# Technical Indicators Configuration
+indicators:
+  rsi:
+    enabled: true
+    period: 14
+    oversold: 30
+    overbought: 70
+    
+  macd:
+    enabled: true
+    fastPeriod: 12
+    slowPeriod: 26
+    signalPeriod: 9
+    
+  bollingerBands:
+    enabled: true
+    period: 20
+    standardDeviations: 2
+    
+  movingAverages:
+    sma20: 20
+    sma50: 50
+    ema12: 12
+    ema26: 26
+    
+# Risk Management for AI Signals
+riskManagement:
+  maxConfidenceWeight: 0.8  # Maximum weight given to AI confidence
+  minConfidenceThreshold: 0.4  # Minimum confidence to act on signal
+  riskLevelWeights:
+    low: 1.0
+    medium: 0.7 
+    high: 0.3

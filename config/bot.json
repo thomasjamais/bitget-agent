@@ -1,0 +1,141 @@
+{
+  "api": {
+    "key": "bg_0b2ec9944060a0c28ff6be0f11d937b8",
+    "secret": "400f05ea3920becfdb59c0242ebbb96213c32632262dfcb050b2881a18dad460",
+    "passphrase": "08072002",
+    "useTestnet": true
+  },
+  "instructions": [
+    {
+      "id": "scalping-btc",
+      "name": "BTC Scalping Strategy",
+      "description": "Short-term scalping on Bitcoin with tight risk management",
+      "enabled": true,
+      "symbols": ["BTCUSDT"],
+      "timeframes": ["1m", "5m"],
+      "direction": "both",
+      "risk": {
+        "maxRiskPerTrade": 1.0,
+        "maxLeverage": 10,
+        "maxPositionsPerSymbol": 2,
+        "maxTotalPositions": 5,
+        "stopLossPercent": 0.5,
+        "takeProfitPercent": 1.0
+      },
+      "signals": {
+        "minConfidence": 0.7,
+        "requiredSources": ["ai-v1"],
+        "cooldownMs": 300000
+      },
+      "schedule": {
+        "daysOfWeek": [1, 2, 3, 4, 5],
+        "startTime": "09:00",
+        "endTime": "17:00",
+        "timezone": "UTC"
+      }
+    },
+    {
+      "id": "swing-altcoins",
+      "name": "Altcoin Swing Trading",
+      "description": "Medium-term swing trades on major altcoins",
+      "enabled": true,
+      "symbols": ["ETHUSDT", "ADAUSDT", "SOLUSDT", "AVAXUSDT"],
+      "timeframes": ["15m", "1h"],
+      "direction": "both",
+      "risk": {
+        "maxRiskPerTrade": 2.0,
+        "maxLeverage": 5,
+        "maxPositionsPerSymbol": 1,
+        "maxTotalPositions": 3,
+        "stopLossPercent": 2.0,
+        "takeProfitPercent": 4.0
+      },
+      "signals": {
+        "minConfidence": 0.6,
+        "cooldownMs": 3600000
+      }
+    },
+    {
+      "id": "trend-following",
+      "name": "Trend Following Strategy", 
+      "description": "Follow strong trends on major pairs with momentum indicators",
+      "enabled": false,
+      "symbols": ["BTCUSDT", "ETHUSDT", "BNBUSDT"],
+      "timeframes": ["4h", "1d"],
+      "direction": "both",
+      "risk": {
+        "maxRiskPerTrade": 3.0,
+        "maxLeverage": 3,
+        "maxPositionsPerSymbol": 1,
+        "maxTotalPositions": 2,
+        "stopLossPercent": 5.0,
+        "takeProfitPercent": 15.0
+      },
+      "signals": {
+        "minConfidence": 0.8,
+        "cooldownMs": 14400000
+      },
+      "parameters": {
+        "trendStrength": 0.7,
+        "momentumPeriod": 14,
+        "volumeConfirmation": true
+      }
+    }
+  ],
+  "globalRisk": {
+    "maxEquityRisk": 10.0,
+    "maxDailyLoss": 5.0,
+    "maxConsecutiveLosses": 3,
+    "sizingMethod": "percent"
+  },
+  "marketData": {
+    "symbols": ["BTCUSDT", "ETHUSDT", "ADAUSDT", "SOLUSDT", "AVAXUSDT", "BNBUSDT"],
+    "defaultTimeframe": "5m",
+    "reconnect": {
+      "maxAttempts": 5,
+      "delayMs": 5000
+    }
+  },
+  "ai": {
+    "engines": [
+      {
+        "name": "ai-v1",
+        "enabled": true,
+        "parameters": {
+          "lookbackPeriod": 50,
+          "volatilityWindow": 20
+        }
+      },
+      {
+        "name": "onnx-model",
+        "enabled": false,
+        "modelPath": "./models/trading-model.onnx",
+        "parameters": {
+          "inputFeatures": 15,
+          "threshold": 0.65
+        }
+      }
+    ],
+    "consensusThreshold": 1
+  },
+  "logging": {
+    "level": "info",
+    "file": "logs/bot.log",
+    "maxFiles": 7,
+    "maxSize": "10MB"
+  },
+  "notifications": {
+    "enabled": false,
+    "webhooks": ["https://hooks.slack.com/services/YOUR/SLACK/WEBHOOK"],
+    "email": {
+      "enabled": false,
+      "smtp": {
+        "host": "smtp.gmail.com",
+        "port": 587,
+        "user": "your-email@gmail.com",
+        "password": "your-app-password"
+      },
+      "to": ["alerts@yourcompany.com"]
+    }
+  }
+}
