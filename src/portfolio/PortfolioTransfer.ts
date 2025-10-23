@@ -1,6 +1,7 @@
 import { RestClientV2 } from "bitget-api";
 import { logger } from "../utils/logger.js";
 import axios from "axios";
+import { createHmac } from "crypto";
 
 export interface TransferRequest {
   from: "spot" | "futures";
@@ -325,8 +326,7 @@ export class PortfolioTransfer {
 
       // Bitget signature format: timestamp + method + requestPath + body
       const message = timestamp + method + requestPath + body;
-      const signature = require("crypto")
-        .createHmac("sha256", apiSecret)
+      const signature = createHmac("sha256", apiSecret)
         .update(message)
         .digest("base64");
 
@@ -394,8 +394,7 @@ export class PortfolioTransfer {
         const body = JSON.stringify(transferParams);
 
         const message = timestamp + method + requestPath + body;
-        const signature = require("crypto")
-          .createHmac("sha256", this.apiCredentials.apiSecret)
+        const signature = createHmac("sha256", this.apiCredentials.apiSecret)
           .update(message)
           .digest("base64");
 

@@ -50,7 +50,11 @@ export class BotWebSocketAdapter {
     return this.wsServer.getStatus();
   }
 
-  private parsePortfolioAllocations(report: string, config: any, portfolio?: any): any[] {
+  private parsePortfolioAllocations(
+    report: string,
+    config: any,
+    portfolio?: any
+  ): any[] {
     const allocations: any[] = [];
     const symbols: string[] = config.symbols || [
       "BTCUSDT",
@@ -94,13 +98,15 @@ export class BotWebSocketAdapter {
    */
   private getCurrentAllocation(symbol: string, portfolio: any): number {
     if (!portfolio?.positions) return 0;
-    
-    const position = portfolio.positions.find((pos: any) => pos.symbol === symbol);
+
+    const position = portfolio.positions.find(
+      (pos: any) => pos.symbol === symbol
+    );
     if (!position) return 0;
-    
+
     const positionValue = position.size * position.markPrice;
     const totalValue = portfolio.totalValue || 1;
-    
+
     return positionValue / totalValue;
   }
 

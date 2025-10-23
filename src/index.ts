@@ -1436,15 +1436,18 @@ class BitgetTradingBot {
       // Get portfolio data with dual portfolio support
       const portfolio = {
         totalValue: equity,
-        positions: await Promise.all(this.botState.positions.map(async (pos) => ({
-          symbol: pos.symbol,
-          size: pos.quantity,
-          markPrice: pos.price,
-          unrealizedPnl: await this.calculateUnrealizedPnl(pos), // Real PnL calculation
-          percentage:
-            ((pos.quantity * (pos.price || 0) * (pos.leverage || 1)) / equity) *
-            100,
-        }))),
+        positions: await Promise.all(
+          this.botState.positions.map(async (pos) => ({
+            symbol: pos.symbol,
+            size: pos.quantity,
+            markPrice: pos.price,
+            unrealizedPnl: await this.calculateUnrealizedPnl(pos), // Real PnL calculation
+            percentage:
+              ((pos.quantity * (pos.price || 0) * (pos.leverage || 1)) /
+                equity) *
+              100,
+          }))
+        ),
         allocations: [], // Will be populated by portfolio balancer
         rebalanceNeeded: false,
         lastRebalance: Date.now(),
@@ -2018,19 +2021,21 @@ class BitgetTradingBot {
         productType: "USDT-FUTURES",
         startTime: Date.now() - 24 * 60 * 60 * 1000, // Last 24 hours
         endTime: Date.now(),
-        limit: 10
+        limit: 10,
       });
 
-      return trades.data?.map((trade: any) => ({
-        id: trade.orderId,
-        symbol: trade.symbol,
-        side: trade.side,
-        amount: parseFloat(trade.size),
-        price: parseFloat(trade.price),
-        timestamp: trade.cTime,
-        status: trade.state === "filled" ? "filled" : "pending",
-        pnl: parseFloat(trade.pnl || "0"),
-      })) || [];
+      return (
+        trades.data?.map((trade: any) => ({
+          id: trade.orderId,
+          symbol: trade.symbol,
+          side: trade.side,
+          amount: parseFloat(trade.size),
+          price: parseFloat(trade.price),
+          timestamp: trade.cTime,
+          status: trade.state === "filled" ? "filled" : "pending",
+          pnl: parseFloat(trade.pnl || "0"),
+        })) || []
+      );
     } catch (error) {
       this.logger.warn("Failed to get recent trades:", error);
       return [];
@@ -2043,26 +2048,30 @@ class BitgetTradingBot {
   private async calculateUnrealizedPnl(position: any): Promise<number> {
     try {
       if (!position.price || !position.quantity) return 0;
-      
+
       // Get current market price
       const ticker = await this.rest.getFuturesTicker({
         productType: "USDT-FUTURES",
-        symbol: position.symbol
+        symbol: position.symbol,
       });
-      
+
       const currentPrice = parseFloat(ticker.data[0]?.lastPr || position.price);
       const entryPrice = position.price;
       const quantity = position.quantity;
       const leverage = position.leverage || 1;
-      
+
       // Calculate PnL based on position direction
-      const priceDiff = position.direction === "long" 
-        ? currentPrice - entryPrice 
-        : entryPrice - currentPrice;
-      
+      const priceDiff =
+        position.direction === "long"
+          ? currentPrice - entryPrice
+          : entryPrice - currentPrice;
+
       return (priceDiff / entryPrice) * quantity * leverage * 100; // Return as percentage
     } catch (error) {
-      this.logger.warn(`Failed to calculate PnL for ${position.symbol}:`, error);
+      this.logger.warn(
+        `Failed to calculate PnL for ${position.symbol}:`,
+        error
+      );
       return 0;
     }
   }
