@@ -93,8 +93,10 @@ export class PortfolioTransfer {
       );
 
       // Map our internal types to Bitget API types
-      const fromType: "spot" | "usdt_futures" = request.from === "spot" ? "spot" : "usdt_futures";
-      const toType: "spot" | "usdt_futures" = request.to === "spot" ? "spot" : "usdt_futures";
+      const fromType: "spot" | "usdt_futures" =
+        request.from === "spot" ? "spot" : "usdt_futures";
+      const toType: "spot" | "usdt_futures" =
+        request.to === "spot" ? "spot" : "usdt_futures";
 
       const transferParams = {
         fromType,

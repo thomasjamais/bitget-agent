@@ -20,6 +20,7 @@ import {
   RebalanceAction,
 } from "./portfolio/PortfolioBalancer.js";
 import { PortfolioTransfer } from "./portfolio/PortfolioTransfer.js";
+import { SpotAutoBalancer, AutoBalancerConfig } from "./portfolio/SpotAutoBalancer.js";
 import { BotState, PositionIntent, Bar } from "./types/index.js";
 import { BotWebSocketAdapter } from "./api/BotWebSocketAdapter.js";
 
@@ -33,6 +34,7 @@ class BitgetTradingBot {
   private decisionEngine: AggressiveDecisionEngine;
   private portfolioBalancer: PortfolioBalancer;
   private portfolioTransfer!: PortfolioTransfer;
+  private spotAutoBalancer!: SpotAutoBalancer;
   private wsAdapter: BotWebSocketAdapter;
   private rest: any;
   private ws: any;
@@ -118,6 +120,27 @@ class BitgetTradingBot {
       this.logger.info("📊 Initializing portfolio balancer...");
       await this.portfolioBalancer.loadConfig();
       this.logger.info("✅ Portfolio balancer initialized");
+
+      // 🎯 Initialize Spot Auto-Balancer
+      this.logger.info("🎯 Initializing Spot Auto-Balancer...");
+      const autoBalancerConfig: AutoBalancerConfig = {
+        enabled: true,
+        minUsdtThreshold: 10, // Minimum 10 USDT to trigger auto-balancing
+        checkIntervalMs: 60000, // Check every 60 seconds
+        targetAllocations: config.targetAllocations || {
+          BTCUSDT: 0.30,
+          ETHUSDT: 0.25,
+          BNBUSDT: 0.42,
+          MATICUSDT: 0.03,
+        },
+      };
+      this.spotAutoBalancer = new SpotAutoBalancer(
+        this.rest,
+        this.portfolioTransfer,
+        autoBalancerConfig
+      );
+      await this.spotAutoBalancer.start();
+      this.logger.info("✅ Spot Auto-Balancer initialized and started");
 
       // Get initial account balance
       await this.updateEquity();
@@ -2074,6 +2097,35 @@ class BitgetTradingBot {
       );
       return 0;
     }
+  }
+
+  /**
+   * Stop the bot gracefully
+   */
+  async stop(): Promise<void> {
+    this.logger.info("🛑 Stopping bot...");
+    this.isRunning = false;
+
+    // Stop auto-balancer
+    if (this.spotAutoBalancer) {
+      this.spotAutoBalancer.stop();
+    }
+
+    // Close WebSocket connections
+    if (this.ws) {
+      try {
+        this.ws.close();
+      } catch (error) {
+        this.logger.warn("Failed to close WebSocket:", error);
+      }
+    }
+
+    // Stop WebSocket server
+    if (this.wsAdapter) {
+      this.wsAdapter.stop();
+    }
+
+    this.logger.info("✅ Bot stopped gracefully");
   }
 }
 
