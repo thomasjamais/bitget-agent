@@ -92,16 +92,15 @@ export class PortfolioTransfer {
         `🔄 Transfer request: ${request.amount} ${request.currency} from ${request.from} to ${request.to}`
       );
 
-       // Map our internal types to Bitget API types
-       const fromType: "spot" | "usdt_futures" = request.from === "spot" ? "spot" : "usdt_futures";
-       const toType: "spot" | "usdt_futures" = request.to === "spot" ? "spot" : "usdt_futures";
+      // Map our internal types to Bitget API types
+      const fromType: "spot" | "usdt_futures" = request.from === "spot" ? "spot" : "usdt_futures";
+      const toType: "spot" | "usdt_futures" = request.to === "spot" ? "spot" : "usdt_futures";
 
       const transferParams = {
         fromType,
         toType,
         amount: String(request.amount),
         coin: request.currency,
-        symbol: "USDTUSDT", // Required for transfer - use trading pair
         clientOid: `transfer_${Date.now()}`,
       };
 

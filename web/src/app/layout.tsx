@@ -26,9 +26,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" className="dark">
-      <body
-        className="min-h-screen bg-gray-900 text-white font-sans"
-      >
+      <body className="min-h-screen bg-gray-900 text-white font-sans">
         <NotificationProvider>
           <div className="flex h-screen overflow-hidden">
             {/* Sidebar Navigation */}
@@ -63,7 +61,7 @@ export default function RootLayout({
             {/* Main Content */}
             <main className="flex-1 overflow-auto">{children}</main>
           </div>
-          
+
           {/* Error Notifications */}
           <ErrorNotifications />
         </NotificationProvider>
