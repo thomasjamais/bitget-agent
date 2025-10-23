@@ -40,7 +40,7 @@ class BitgetTradingBot {
   private ws: any;
   private isRunning = false;
   private readonly logger = logger.child({ component: "TradingBot" });
-  private runtimeConfig: { useTestnet?: boolean } = { useTestnet: true }; // Default to testnet for safety
+  private runtimeConfig: { useTestnet?: boolean } = { useTestnet: false }; // Default to production
 
   constructor() {
     // Use Enhanced AI Engine if enabled in environment
@@ -139,6 +139,10 @@ class BitgetTradingBot {
         this.portfolioTransfer,
         autoBalancerConfig
       );
+      
+      // Set WebSocket adapter for broadcasting events
+      this.spotAutoBalancer.setWebSocketAdapter(this.wsAdapter);
+      
       await this.spotAutoBalancer.start();
       this.logger.info("✅ Spot Auto-Balancer initialized and started");
 

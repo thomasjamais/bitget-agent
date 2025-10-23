@@ -16,6 +16,7 @@ export class SpotAutoBalancer {
   private checkInterval: NodeJS.Timeout | null = null;
   private isBalancing = false;
   private lastBalanceTime = 0;
+  private wsAdapter: any = null; // Will be set by the bot
   private readonly logger = logger.child({ component: "SpotAutoBalancer" });
 
   constructor(
@@ -26,6 +27,13 @@ export class SpotAutoBalancer {
     this.rest = restClient;
     this.portfolioTransfer = portfolioTransfer;
     this.config = config;
+  }
+
+  /**
+   * Set WebSocket adapter for broadcasting events
+   */
+  setWebSocketAdapter(wsAdapter: any): void {
+    this.wsAdapter = wsAdapter;
   }
 
   /**
@@ -93,6 +101,20 @@ export class SpotAutoBalancer {
             this.config.minUsdtThreshold
           }), triggering auto-balance`
         );
+        
+        // Broadcast trigger event
+        if (this.wsAdapter) {
+          this.wsAdapter.broadcast({
+            type: "auto_balance_triggered",
+            message: `Auto-balancing triggered: ${usdtBalance.toFixed(2)} USDT detected`,
+            details: {
+              usdtBalance,
+              threshold: this.config.minUsdtThreshold,
+              timestamp: Date.now()
+            }
+          });
+        }
+        
         await this.executeBalancing(usdtBalance);
       } else {
         this.logger.debug(
@@ -185,6 +207,33 @@ export class SpotAutoBalancer {
       this.logger.info(
         `✅ Auto-balancing completed: ${successCount} successful, ${failCount} failed`
       );
+
+      // Broadcast completion event
+      if (this.wsAdapter) {
+        if (successCount > 0 && failCount === 0) {
+          this.wsAdapter.broadcast({
+            type: "auto_balance_success",
+            message: `Auto-balancing completed successfully: ${successCount} assets purchased`,
+            details: {
+              successCount,
+              failCount,
+              totalUsdtAmount,
+              timestamp: Date.now()
+            }
+          });
+        } else if (failCount > 0) {
+          this.wsAdapter.broadcast({
+            type: "auto_balance_error",
+            message: `Auto-balancing failed: ${failCount} assets failed to purchase`,
+            details: {
+              successCount,
+              failCount,
+              totalUsdtAmount,
+              timestamp: Date.now()
+            }
+          });
+        }
+      }
     } catch (error) {
       this.logger.error("❌ Auto-balancing failed:", error);
     } finally {

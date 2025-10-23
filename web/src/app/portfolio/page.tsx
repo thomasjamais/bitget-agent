@@ -6,6 +6,7 @@ import { BotData } from "@/types/bot";
 import { SpotPortfolio } from "@/components/SpotPortfolio";
 import { FuturesPortfolio } from "@/components/FuturesPortfolio";
 import { PortfolioTransfer } from "@/components/PortfolioTransfer";
+import { AutoBalanceStatus } from "@/components/AutoBalanceStatus";
 
 export default function PortfolioPage() {
   const [botData, setBotData] = useState<BotData | null>(null);
@@ -87,6 +88,9 @@ export default function PortfolioPage() {
           </span>
         </div>
       </div>
+
+      {/* Auto-Balance Status */}
+      <AutoBalanceStatus />
 
       {/* Portfolio Transfer Control */}
       <PortfolioTransfer
