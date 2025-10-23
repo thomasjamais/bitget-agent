@@ -92,21 +92,26 @@ export class PortfolioTransfer {
         `🔄 Transfer request: ${request.amount} ${request.currency} from ${request.from} to ${request.to}`
       );
 
-      // Map our internal types to Bitget API types
-      const fromType = request.from === "spot" ? "spot" : "mix_usdt_futures";
-      const toType = request.to === "spot" ? "spot" : "mix_usdt_futures";
+       // Map our internal types to Bitget API types
+       const fromType: "spot" | "usdt_futures" = request.from === "spot" ? "spot" : "usdt_futures";
+       const toType: "spot" | "usdt_futures" = request.to === "spot" ? "spot" : "usdt_futures";
 
       const transferParams = {
         fromType,
         toType,
         amount: String(request.amount),
         coin: request.currency,
+        symbol: "USDT", // Required for transfer
+        clientOid: `transfer_${Date.now()}`,
       };
 
-      this.logger.info({ transferParams }, `📤 Executing transfer via Bitget API`);
+      this.logger.info(
+        { transferParams },
+        `📤 Executing transfer via Bitget API`
+      );
 
-      // Use Bitget's transfer API via direct HTTP call
-      const result = await this.executeTransferAPI(transferParams);
+      // Use Bitget's transfer API via REST client
+      const result = await this.rest.spotTransfer(transferParams);
 
       if (result && result.data) {
         this.logger.info(
@@ -118,14 +123,17 @@ export class PortfolioTransfer {
         return false;
       }
     } catch (error: any) {
-      this.logger.error({
-        error: error.message,
-        code: error.code,
-        statusCode: error.response?.status,
-        response: error.response?.data,
-        request,
-        fullError: error
-      }, `❌ Transfer failed`);
+      this.logger.error(
+        {
+          error: error.message,
+          code: error.code,
+          statusCode: error.response?.status,
+          response: error.response?.data,
+          request,
+          fullError: error,
+        },
+        `❌ Transfer failed`
+      );
       return false;
     }
   }
@@ -330,13 +338,16 @@ export class PortfolioTransfer {
         .update(message)
         .digest("base64");
 
-      this.logger.info({
-        timestamp,
-        method,
-        requestPath,
-        body,
-        signature: signature.substring(0, 10) + "..."
-      }, "🔐 Signature details");
+      this.logger.info(
+        {
+          timestamp,
+          method,
+          requestPath,
+          body,
+          signature: signature.substring(0, 10) + "...",
+        },
+        "🔐 Signature details"
+      );
 
       // Make the API call with proper headers
       const response = await axios.post(
@@ -361,28 +372,34 @@ export class PortfolioTransfer {
         this.logger.info(`✅ Real transfer successful:`, response.data);
         return response.data;
       } else {
-        this.logger.error({
-          code: response.data?.code,
-          msg: response.data?.msg,
-          data: response.data,
-          fullResponse: response.data
-        }, `❌ Transfer API error`);
+        this.logger.error(
+          {
+            code: response.data?.code,
+            msg: response.data?.msg,
+            data: response.data,
+            fullResponse: response.data,
+          },
+          `❌ Transfer API error`
+        );
         throw new Error(
           `Transfer failed: ${response.data?.msg || "Unknown error"}`
         );
       }
     } catch (error: any) {
-      this.logger.error({
-        message: error.message,
-        statusCode: error.response?.status,
-        response: error.response?.data,
-        config: {
-          url: error.config?.url,
-          method: error.config?.method,
-          data: error.config?.data
+      this.logger.error(
+        {
+          message: error.message,
+          statusCode: error.response?.status,
+          response: error.response?.data,
+          config: {
+            url: error.config?.url,
+            method: error.config?.method,
+            data: error.config?.data,
+          },
+          fullError: error,
         },
-        fullError: error
-      }, "❌ Real transfer failed, trying alternative method");
+        "❌ Real transfer failed, trying alternative method"
+      );
 
       // Try alternative transfer method with different endpoint
       try {
@@ -390,7 +407,7 @@ export class PortfolioTransfer {
 
         const timestamp = Date.now().toString();
         const method = "POST";
-        const requestPath = "/api/v2/mix/account/transfer";
+        const requestPath = "/api/v2/spot/wallet/transfer";
         const body = JSON.stringify(transferParams);
 
         const message = timestamp + method + requestPath + body;
@@ -414,7 +431,10 @@ export class PortfolioTransfer {
           }
         );
 
-        this.logger.info({ response: response.data }, "📥 Alternative transfer response");
+        this.logger.info(
+          { response: response.data },
+          "📥 Alternative transfer response"
+        );
 
         if (response.data && response.data.code === "00000") {
           this.logger.info(
@@ -423,25 +443,31 @@ export class PortfolioTransfer {
           );
           return response.data;
         } else {
-          this.logger.error({
-            code: response.data?.code,
-            msg: response.data?.msg,
-            data: response.data,
-            fullResponse: response.data
-          }, `❌ Alternative transfer API error`);
+          this.logger.error(
+            {
+              code: response.data?.code,
+              msg: response.data?.msg,
+              data: response.data,
+              fullResponse: response.data,
+            },
+            `❌ Alternative transfer API error`
+          );
         }
       } catch (altError: any) {
-        this.logger.error({
-          message: altError.message,
-          statusCode: altError.response?.status,
-          response: altError.response?.data,
-          config: {
-            url: altError.config?.url,
-            method: altError.config?.method,
-            data: altError.config?.data
+        this.logger.error(
+          {
+            message: altError.message,
+            statusCode: altError.response?.status,
+            response: altError.response?.data,
+            config: {
+              url: altError.config?.url,
+              method: altError.config?.method,
+              data: altError.config?.data,
+            },
+            fullError: altError,
           },
-          fullError: altError
-        }, "❌ Alternative transfer also failed");
+          "❌ Alternative transfer also failed"
+        );
       }
 
       // If all real methods fail, fall back to simulation
