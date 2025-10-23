@@ -101,8 +101,13 @@ export class SpotAutoBalancer {
           }), no action needed`
         );
       }
-    } catch (error) {
-      this.logger.error("❌ Failed to check and balance:", error);
+    } catch (error: any) {
+      this.logger.error("❌ Failed to check and balance:", {
+        error: error.message,
+        code: error.code,
+        status: error.status,
+        stack: error.stack,
+      });
     }
   }
 

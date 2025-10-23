@@ -10,7 +10,7 @@ import { PortfolioTransfer } from "./src/portfolio/PortfolioTransfer.js";
 
 async function testAutoBalance() {
   console.log("🧪 Testing Auto-Balance System...");
-  
+
   try {
     // Initialize Bitget client
     const rest = new RestClientV2(
@@ -33,7 +33,7 @@ async function testAutoBalance() {
       minUsdtThreshold: 1, // Very low threshold for testing
       checkIntervalMs: 10000, // 10 seconds
       targetAllocations: {
-        BTCUSDT: 0.30,
+        BTCUSDT: 0.3,
         ETHUSDT: 0.25,
         BNBUSDT: 0.42,
         MATICUSDT: 0.03,
@@ -46,7 +46,7 @@ async function testAutoBalance() {
     const autoBalancer = new SpotAutoBalancer(rest, portfolioTransfer, config);
 
     console.log("🔍 Checking current Spot balances...");
-    
+
     // Get current balances
     const balances = await portfolioTransfer.getPortfolioBalances();
     console.log("💰 Current balances:", {
@@ -59,7 +59,6 @@ async function testAutoBalance() {
     await autoBalancer.checkAndBalance();
 
     console.log("✅ Test completed successfully!");
-
   } catch (error) {
     console.error("❌ Test failed with error:");
     console.error("Error type:", error.constructor.name);
@@ -67,7 +66,7 @@ async function testAutoBalance() {
     console.error("Error code:", error.code);
     console.error("Error status:", error.status);
     console.error("Full error:", error);
-    
+
     if (error.response) {
       console.error("Response data:", error.response.data);
       console.error("Response status:", error.response.status);
