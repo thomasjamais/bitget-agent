@@ -217,7 +217,7 @@ export class PortfolioTransfer {
   /**
    * Get spot wallet balances
    */
-  private async getSpotBalances(): Promise<PortfolioBalance["spot"]> {
+  public async getSpotBalances(): Promise<PortfolioBalance["spot"]> {
     try {
       const result = await this.rest.getSpotAccountAssets();
 
@@ -244,7 +244,13 @@ export class PortfolioTransfer {
 
       return balances;
     } catch (error) {
-      this.logger.error("❌ Failed to get spot balances:", error);
+      this.logger.error("❌ Failed to get spot balances:", {
+        error: error.message,
+        code: error.code,
+        status: error.status,
+        response: error.response?.data,
+        fullError: error
+      });
       return { USDT: 0, BTC: 0, ETH: 0, BNB: 0, MATIC: 0 };
     }
   }
@@ -252,10 +258,11 @@ export class PortfolioTransfer {
   /**
    * Get futures wallet balances
    */
-  private async getFuturesBalances(): Promise<PortfolioBalance["futures"]> {
+  public async getFuturesBalances(): Promise<PortfolioBalance["futures"]> {
     try {
-      const result = await this.rest.getFuturesAccountAssets({
-        productType: "USDT-FUTURES" as const,
+      const result = await this.rest.getFuturesAccount({
+        productType: "USDT-FUTURES",
+        marginCoin: "USDT",
       });
 
       const balances: PortfolioBalance["futures"] = {
@@ -276,7 +283,13 @@ export class PortfolioTransfer {
 
       return balances;
     } catch (error) {
-      this.logger.error("❌ Failed to get futures balances:", error);
+      this.logger.error("❌ Failed to get futures balances:", {
+        error: error.message,
+        code: error.code,
+        status: error.status,
+        response: error.response?.data,
+        fullError: error
+      });
       return { USDT: 0, totalEquity: 0, availableBalance: 0 };
     }
   }

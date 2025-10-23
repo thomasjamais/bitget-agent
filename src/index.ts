@@ -127,7 +127,7 @@ class BitgetTradingBot {
         enabled: true,
         minUsdtThreshold: 10, // Minimum 10 USDT to trigger auto-balancing
         checkIntervalMs: 60000, // Check every 60 seconds
-        targetAllocations: config.targetAllocations || {
+        targetAllocations: {
           BTCUSDT: 0.30,
           ETHUSDT: 0.25,
           BNBUSDT: 0.42,
@@ -1544,24 +1544,6 @@ class BitgetTradingBot {
     }
   }
 
-  /**
-   * Stop the bot gracefully
-   */
-  async stop(): Promise<void> {
-    this.logger.info("Stopping trading bot...");
-    this.isRunning = false;
-    this.botState.isActive = false;
-
-    if (this.ws) {
-      this.ws.close();
-    }
-
-    if (this.wsAdapter) {
-      this.wsAdapter.stop();
-    }
-
-    this.logger.info("Trading bot stopped");
-  }
 
   /**
    * Emergency stop - close all positions
