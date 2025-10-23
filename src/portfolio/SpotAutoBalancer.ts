@@ -50,7 +50,9 @@ export class SpotAutoBalancer {
     }, this.config.checkIntervalMs);
 
     this.logger.info(
-      `✅ Auto-balancer started (checking every ${this.config.checkIntervalMs / 1000}s)`
+      `✅ Auto-balancer started (checking every ${
+        this.config.checkIntervalMs / 1000
+      }s)`
     );
   }
 
@@ -87,12 +89,16 @@ export class SpotAutoBalancer {
       // Check if we should trigger balancing
       if (usdtBalance >= this.config.minUsdtThreshold) {
         this.logger.info(
-          `🚀 USDT balance (${usdtBalance.toFixed(2)}) exceeds threshold (${this.config.minUsdtThreshold}), triggering auto-balance`
+          `🚀 USDT balance (${usdtBalance.toFixed(2)}) exceeds threshold (${
+            this.config.minUsdtThreshold
+          }), triggering auto-balance`
         );
         await this.executeBalancing(usdtBalance);
       } else {
         this.logger.debug(
-          `✅ USDT balance (${usdtBalance.toFixed(2)}) below threshold (${this.config.minUsdtThreshold}), no action needed`
+          `✅ USDT balance (${usdtBalance.toFixed(2)}) below threshold (${
+            this.config.minUsdtThreshold
+          }), no action needed`
         );
       }
     } catch (error) {
@@ -109,7 +115,9 @@ export class SpotAutoBalancer {
 
     try {
       this.logger.info(
-        `📊 Starting automatic portfolio balancing with ${totalUsdtAmount.toFixed(2)} USDT`
+        `📊 Starting automatic portfolio balancing with ${totalUsdtAmount.toFixed(
+          2
+        )} USDT`
       );
 
       // Calculate allocations based on target percentages
@@ -137,7 +145,11 @@ export class SpotAutoBalancer {
       for (const allocation of allocations) {
         if (allocation.amount < 5) {
           this.logger.warn(
-            `⚠️ Skipping ${allocation.symbol}: amount too small (${allocation.amount.toFixed(2)} USDT, minimum 5 USDT)`
+            `⚠️ Skipping ${
+              allocation.symbol
+            }: amount too small (${allocation.amount.toFixed(
+              2
+            )} USDT, minimum 5 USDT)`
           );
           continue;
         }
@@ -146,7 +158,11 @@ export class SpotAutoBalancer {
           await this.buySpotAsset(allocation.symbol, allocation.amount);
           successCount++;
           this.logger.info(
-            `✅ [${successCount}/${allocations.length}] Purchased ${allocation.amount.toFixed(2)} USDT worth of ${allocation.symbol}`
+            `✅ [${successCount}/${
+              allocations.length
+            }] Purchased ${allocation.amount.toFixed(2)} USDT worth of ${
+              allocation.symbol
+            }`
           );
 
           // Add delay between orders to avoid rate limiting
@@ -193,7 +209,9 @@ export class SpotAutoBalancer {
       };
 
       this.logger.info(
-        `📤 Placing spot market order: ${usdtAmount.toFixed(2)} USDT → ${symbol}`
+        `📤 Placing spot market order: ${usdtAmount.toFixed(
+          2
+        )} USDT → ${symbol}`
       );
 
       const result = await this.rest.spotSubmitOrder(orderParams);
@@ -241,4 +259,3 @@ export class SpotAutoBalancer {
     }
   }
 }
-
