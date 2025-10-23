@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import { Portfolio } from "@/types/bot";
+import { useNotificationContext } from "@/contexts/NotificationContext";
 
 interface PortfolioControlsProps {
   portfolio?: Portfolio;
@@ -21,6 +22,7 @@ export function PortfolioControls({
   const [allocationAmount, setAllocationAmount] = useState<number>(0);
   const [isRebalancing, setIsRebalancing] = useState(false);
   const [editingAllocations, setEditingAllocations] = useState(false);
+  const { showSuccess, showError } = useNotificationContext();
   const [tempAllocations, setTempAllocations] = useState<{
     [key: string]: number;
   }>({});
@@ -52,7 +54,7 @@ export function PortfolioControls({
         }
 
         console.log("Capital allocated successfully:", result);
-        alert(`✅ ${result.message}`);
+        showSuccess("Capital Allocated", result.message || "Capital allocated successfully");
 
         // Call callback if provided
         if (onAllocateCapital) {
@@ -60,7 +62,7 @@ export function PortfolioControls({
         }
       } catch (error) {
         console.error("Failed to allocate capital:", error);
-        alert(`❌ Failed to allocate capital: ${error}`);
+        showError("Allocation Failed", error instanceof Error ? error.message : "Failed to allocate capital");
       } finally {
         setIsRebalancing(false);
       }
@@ -87,7 +89,7 @@ export function PortfolioControls({
       }
 
       console.log("Rebalance triggered successfully:", result);
-      alert(`✅ ${result.message}`);
+      showSuccess("Rebalance Triggered", result.message || "Rebalance triggered successfully");
 
       // Call callback if provided
       if (onTriggerRebalance) {
@@ -95,7 +97,7 @@ export function PortfolioControls({
       }
     } catch (error) {
       console.error("Failed to trigger rebalance:", error);
-      alert(`❌ Failed to trigger rebalance: ${error}`);
+      showError("Rebalance Failed", error instanceof Error ? error.message : "Failed to trigger rebalance");
     } finally {
       setIsRebalancing(false);
     }
@@ -174,7 +176,7 @@ export function PortfolioControls({
       await Promise.all(updates);
 
       console.log("All allocations updated successfully");
-      alert("✅ Portfolio allocations updated successfully");
+      showSuccess("Allocations Updated", "Portfolio allocations updated successfully");
 
       // Call callbacks if provided
       if (onUpdateAllocation) {
@@ -186,7 +188,7 @@ export function PortfolioControls({
       setEditingAllocations(false);
     } catch (error) {
       console.error("Failed to save allocations:", error);
-      alert(`❌ Failed to save allocations: ${error}`);
+      showError("Save Failed", error instanceof Error ? error.message : "Failed to save allocations");
     }
   };
 

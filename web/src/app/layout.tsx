@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { ModeIndicator } from "@/components/ModeIndicator";
 import { WalletConnect } from "@/components/WalletConnect";
+import { ErrorNotifications } from "@/components/ErrorNotifications";
+import { NotificationProvider } from "@/contexts/NotificationContext";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -22,12 +24,13 @@ export default function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
-  return (
-    <html lang="en" className="dark">
-      <body
-        className="min-h-screen bg-gray-900 text-white font-sans"
-      >
-        <div className="flex h-screen overflow-hidden">
+      return (
+        <html lang="en" className="dark">
+          <body
+            className="min-h-screen bg-gray-900 text-white font-sans"
+          >
+            <NotificationProvider>
+              <div className="flex h-screen overflow-hidden">
           {/* Sidebar Navigation */}
           <nav className="w-64 bg-gray-800 border-r border-gray-700 flex-shrink-0">
             <div className="p-6">
@@ -57,12 +60,17 @@ export default function RootLayout({
             </div>
           </nav>
 
-          {/* Main Content */}
-          <main className="flex-1 overflow-auto">{children}</main>
-        </div>
-      </body>
-    </html>
-  );
+              {/* Main Content */}
+              <main className="flex-1 overflow-auto">{children}</main>
+            </div>
+            
+              {/* Error Notifications */}
+              <ErrorNotifications />
+              </div>
+            </NotificationProvider>
+          </body>
+        </html>
+      );
 }
 
 function NavLink({

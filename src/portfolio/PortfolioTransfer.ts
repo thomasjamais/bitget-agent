@@ -101,7 +101,7 @@ export class PortfolioTransfer {
         toType,
         amount: String(request.amount),
         coin: request.currency,
-        symbol: "USDT", // Required for transfer
+        symbol: "USDTUSDT", // Required for transfer - use trading pair
         clientOid: `transfer_${Date.now()}`,
       };
 
