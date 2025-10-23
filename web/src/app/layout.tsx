@@ -24,53 +24,52 @@ export default function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
-      return (
-        <html lang="en" className="dark">
-          <body
-            className="min-h-screen bg-gray-900 text-white font-sans"
-          >
-            <NotificationProvider>
-              <div className="flex h-screen overflow-hidden">
-          {/* Sidebar Navigation */}
-          <nav className="w-64 bg-gray-800 border-r border-gray-700 flex-shrink-0">
-            <div className="p-6">
-              <h1 className="text-xl font-bold text-white mb-4">
-                🚀 Bitget Bot
-              </h1>
+  return (
+    <html lang="en" className="dark">
+      <body
+        className="min-h-screen bg-gray-900 text-white font-sans"
+      >
+        <NotificationProvider>
+          <div className="flex h-screen overflow-hidden">
+            {/* Sidebar Navigation */}
+            <nav className="w-64 bg-gray-800 border-r border-gray-700 flex-shrink-0">
+              <div className="p-6">
+                <h1 className="text-xl font-bold text-white mb-4">
+                  🚀 Bitget Bot
+                </h1>
 
-              {/* Mode Indicator */}
-              <div className="mb-6">
-                <ModeIndicator />
-              </div>
+                {/* Mode Indicator */}
+                <div className="mb-6">
+                  <ModeIndicator />
+                </div>
 
-              {/* Wallet Connect */}
-              <div className="mb-6">
-                <WalletConnect />
-              </div>
+                {/* Wallet Connect */}
+                <div className="mb-6">
+                  <WalletConnect />
+                </div>
 
-              <div className="space-y-2">
-                <NavLink href="/" icon="📊" label="Dashboard" />
-                <NavLink href="/portfolio" icon="💰" label="Portfolio" />
-                <NavLink href="/trades" icon="⚡" label="Active Trades" />
-                <NavLink href="/ai-analysis" icon="🤖" label="AI Analysis" />
-                <NavLink href="/history" icon="📈" label="Trade History" />
-                <NavLink href="/settings" icon="⚙️" label="Settings" />
-                <NavLink href="/logs" icon="📝" label="Logs" />
+                <div className="space-y-2">
+                  <NavLink href="/" icon="📊" label="Dashboard" />
+                  <NavLink href="/portfolio" icon="💰" label="Portfolio" />
+                  <NavLink href="/trades" icon="⚡" label="Active Trades" />
+                  <NavLink href="/ai-analysis" icon="🤖" label="AI Analysis" />
+                  <NavLink href="/history" icon="📈" label="Trade History" />
+                  <NavLink href="/settings" icon="⚙️" label="Settings" />
+                  <NavLink href="/logs" icon="📝" label="Logs" />
+                </div>
               </div>
-            </div>
-          </nav>
+            </nav>
 
-              {/* Main Content */}
-              <main className="flex-1 overflow-auto">{children}</main>
-            </div>
-            
-              {/* Error Notifications */}
-              <ErrorNotifications />
-              </div>
-            </NotificationProvider>
-          </body>
-        </html>
-      );
+            {/* Main Content */}
+            <main className="flex-1 overflow-auto">{children}</main>
+          </div>
+          
+          {/* Error Notifications */}
+          <ErrorNotifications />
+        </NotificationProvider>
+      </body>
+    </html>
+  );
 }
 
 function NavLink({
