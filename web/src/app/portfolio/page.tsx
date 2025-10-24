@@ -12,7 +12,7 @@ export default function PortfolioPage() {
   const [botData, setBotData] = useState<BotData | null>(null);
   const [isConnected, setIsConnected] = useState(false);
 
-  const { data, connected } = useWebSocket("ws://localhost:8080/ws");
+  const { data, connected } = useWebSocket("ws://localhost:8081/ws");
 
   useEffect(() => {
     setIsConnected(connected);

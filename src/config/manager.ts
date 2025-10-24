@@ -338,6 +338,32 @@ export class ConfigManager {
   }
 
   /**
+   * Save configuration to file
+   */
+  async saveConfig(config: BotConfig, configPath: string): Promise<void> {
+    try {
+      const absolutePath = path.resolve(configPath);
+      const ext = path.extname(absolutePath).toLowerCase();
+
+      let content: string;
+
+      if (ext === ".json") {
+        content = JSON.stringify(config, null, 2);
+      } else if (ext === ".yaml" || ext === ".yml") {
+        content = yaml.dump(config);
+      } else {
+        throw new Error(`Unsupported configuration file format: ${ext}`);
+      }
+
+      fs.writeFileSync(absolutePath, content, "utf-8");
+      logger.info(`Configuration saved successfully to ${configPath}`);
+    } catch (error) {
+      logger.error(`Failed to save configuration: ${error}`);
+      throw error;
+    }
+  }
+
+  /**
    * Get current configuration
    */
   getConfig(): BotConfig {

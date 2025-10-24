@@ -5,13 +5,25 @@ export interface BotData {
   uptime: number;
   equity: number;
   dailyPnL: number;
-  environment: 'TESTNET' | 'LIVE';
+  environment: "TESTNET" | "LIVE";
   portfolio: Portfolio;
   aggressiveTrading: AggressiveTradingMetrics;
   marketData: MarketDataItem[];
   opportunities: TradingOpportunity[];
   recentTrades: TradeItem[];
   aiEngine: AIEngineStatus;
+  spotRebalancingEnabled?: boolean;
+  strategy?: "moderate" | "intense" | "risky";
+  botConfig?: {
+    maxDailyTrades?: number;
+    maxRiskPerTrade?: number;
+    maxLeverage?: number;
+    stopLoss?: number;
+    takeProfit?: number;
+    minConfidence?: number;
+    cooldownMinutes?: number;
+    maxConcurrentPositions?: number;
+  };
 }
 
 export interface Portfolio {
@@ -35,7 +47,7 @@ export interface Allocation {
   current: number;
   target: number;
   deviation: number;
-  status: 'BALANCED' | 'OVERWEIGHT' | 'UNDERWEIGHT';
+  status: "BALANCED" | "OVERWEIGHT" | "UNDERWEIGHT";
   value: number;
 }
 
@@ -60,7 +72,7 @@ export interface MarketDataItem {
 
 export interface TradingOpportunity {
   symbol: string;
-  direction: 'long' | 'short';
+  direction: "long" | "short";
   confidence: number;
   expectedReturn: number;
   riskScore: number;
@@ -72,24 +84,30 @@ export interface TradingOpportunity {
 export interface TradeItem {
   id: string;
   symbol: string;
-  side: 'buy' | 'sell';
+  side: "buy" | "sell";
   amount: number;
   price: number;
   timestamp: number;
-  status: 'pending' | 'filled' | 'cancelled';
+  status: "pending" | "filled" | "cancelled";
   pnl?: number;
 }
 
 export interface AIEngineStatus {
   model: string;
-  status: 'OPERATIONAL' | 'ERROR' | 'LOADING';
+  status: "OPERATIONAL" | "ERROR" | "LOADING";
   predictions: number;
   accuracy?: number;
 }
 
 // WebSocket message types
 export interface WSMessage {
-  type: 'bot_update' | 'market_update' | 'trade_update' | 'error' | 'ping' | 'pong';
+  type:
+    | "bot_update"
+    | "market_update"
+    | "trade_update"
+    | "error"
+    | "ping"
+    | "pong";
   data: any;
   timestamp: number;
 }

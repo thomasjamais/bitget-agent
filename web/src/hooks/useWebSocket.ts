@@ -28,7 +28,10 @@ export function useWebSocket(url: string): UseWebSocketReturn {
         return;
       }
 
-      console.log("🔌 Connecting to WebSocket:", url);
+      // Only log connection attempts if we haven't exceeded max attempts
+      if (reconnectAttempts.current < maxReconnectAttempts) {
+        console.log("🔌 Connecting to WebSocket:", url);
+      }
       wsRef.current = new WebSocket(url);
 
       wsRef.current.onopen = () => {
@@ -56,13 +59,19 @@ export function useWebSocket(url: string): UseWebSocketReturn {
       };
 
       wsRef.current.onerror = (event) => {
-        console.error("❌ WebSocket error:", event);
+        // Only log errors for the first few attempts to reduce console noise
+        if (reconnectAttempts.current < 3) {
+          console.error("❌ WebSocket error:", event);
+        }
         setError("Connection error");
         setConnected(false);
       };
 
       wsRef.current.onclose = (event) => {
-        console.log("🔌 WebSocket disconnected:", event.code, event.reason);
+        // Only log disconnection for the first few attempts
+        if (reconnectAttempts.current < 3) {
+          console.log("🔌 WebSocket disconnected:", event.code, event.reason);
+        }
         setConnected(false);
 
         // Attempt reconnection if not manually closed
@@ -74,11 +83,15 @@ export function useWebSocket(url: string): UseWebSocketReturn {
             1000 * Math.pow(2, reconnectAttempts.current),
             30000
           );
-          console.log(
-            `🔄 Reconnecting in ${delay}ms (attempt ${
-              reconnectAttempts.current + 1
-            }/${maxReconnectAttempts})`
-          );
+
+          // Only log reconnection attempts for the first few times
+          if (reconnectAttempts.current < 3) {
+            console.log(
+              `🔄 Reconnecting in ${delay}ms (attempt ${
+                reconnectAttempts.current + 1
+              }/${maxReconnectAttempts})`
+            );
+          }
 
           reconnectTimeoutRef.current = setTimeout(() => {
             reconnectAttempts.current++;

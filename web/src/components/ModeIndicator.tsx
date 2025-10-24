@@ -1,14 +1,14 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useWebSocket } from "@/hooks/useWebSocket";
+import { useWebSocket } from "@/contexts/WebSocketContext";
 
 export function ModeIndicator() {
   const [isTestnet, setIsTestnet] = useState(true);
   const [isConnected, setIsConnected] = useState(false);
   const [uptime, setUptime] = useState<string>("--:--:--");
 
-  const { data, connected } = useWebSocket("ws://localhost:8080/ws");
+  const { data, connected } = useWebSocket();
 
   useEffect(() => {
     setIsConnected(connected);

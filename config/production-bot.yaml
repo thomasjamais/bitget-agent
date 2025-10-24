@@ -1,0 +1,204 @@
+# 🚀 PRODUCTION TRADING BOT CONFIGURATION
+# Optimized for real money trading and profit generation
+
+# Trading Configuration - PRODUCTION MODE
+trading:
+  enabled: true           # 🚀 ENABLE LIVE TRADING
+  mode: "live"           # live, paper, or dry-run
+  confirmTrades: false   # Set to true to require manual confirmation
+
+api:
+  key: "${BITGET_API_KEY}"
+  secret: "${BITGET_API_SECRET}"
+  passphrase: "${BITGET_API_PASSPHRASE}"
+
+# 🎯 PROFIT-OPTIMIZED TRADING STRATEGIES
+instructions:
+  # Strategy 1: High-Frequency Scalping (Most Profitable)
+  - id: "hf-scalping"
+    name: "High-Frequency Scalping"
+    description: "Ultra-fast scalping for small but consistent profits"
+    enabled: true
+    symbols: ["BTCUSDT", "ETHUSDT", "BNBUSDT"]
+    timeframes: ["1m", "3m"]
+    direction: "both"
+    risk:
+      maxRiskPerTrade: 0.3      # Very low risk per trade
+      maxLeverage: 25           # High leverage for profit
+      maxPositionsPerSymbol: 5  # Multiple positions
+      maxTotalPositions: 15     # High frequency
+      stopLossPercent: 0.2      # Tight stop loss
+      takeProfitPercent: 0.6    # Quick profit taking
+    signals:
+      minConfidence: 0.9        # Very high confidence required
+      cooldownMs: 30000         # 30 seconds between trades
+    parameters:
+      rsiPeriod: 14
+      rsiOversold: 25
+      rsiOverbought: 75
+      macdFast: 5
+      macdSlow: 13
+      macdSignal: 3
+      bbPeriod: 10
+      bbStdDev: 1.5
+
+  # Strategy 2: Mean Reversion with AI Confirmation
+  - id: "mean-reversion-ai"
+    name: "AI-Confirmed Mean Reversion"
+    description: "Mean reversion with AI confirmation for higher accuracy"
+    enabled: true
+    symbols: ["BTCUSDT", "ETHUSDT", "BNBUSDT"]
+    timeframes: ["5m", "15m"]
+    direction: "both"
+    risk:
+      maxRiskPerTrade: 0.8
+      maxLeverage: 15
+      maxPositionsPerSymbol: 3
+      maxTotalPositions: 8
+      stopLossPercent: 0.5
+      takeProfitPercent: 1.5
+    signals:
+      minConfidence: 0.85
+      cooldownMs: 120000        # 2 minutes
+    parameters:
+      rsiPeriod: 14
+      rsiOversold: 30
+      rsiOverbought: 70
+      bbPeriod: 20
+      bbStdDev: 2.0
+      requireAiConfirmation: true
+
+  # Strategy 3: Trend Following with High Leverage
+  - id: "trend-following-leverage"
+    name: "High-Leverage Trend Following"
+    description: "Strong trend following with high leverage for maximum profit"
+    enabled: true
+    symbols: ["BTCUSDT", "ETHUSDT"]
+    timeframes: ["15m", "1h"]
+    direction: "both"
+    risk:
+      maxRiskPerTrade: 1.2
+      maxLeverage: 20
+      maxPositionsPerSymbol: 2
+      maxTotalPositions: 4
+      stopLossPercent: 1.0
+      takeProfitPercent: 3.0
+    signals:
+      minConfidence: 0.8
+      cooldownMs: 300000        # 5 minutes
+    parameters:
+      rsiPeriod: 14
+      macdFast: 12
+      macdSlow: 26
+      macdSignal: 9
+      bbPeriod: 20
+      bbStdDev: 2.0
+      requireTrendConfirmation: true
+
+# 🛡️ CONSERVATIVE RISK MANAGEMENT FOR PRODUCTION
+globalRisk:
+  maxEquityRisk: 5.0           # Reduced from 12% to 5%
+  maxDailyLoss: 2.0            # Reduced from 4% to 2%
+  maxConsecutiveLosses: 3      # Reduced from 4 to 3
+  sizingMethod: "percent" # Conservative position sizing
+
+# 📊 OPTIMIZED MARKET DATA FOR HIGH FREQUENCY
+marketData:
+  enabled: true
+  symbols: ["BTCUSDT", "ETHUSDT", "BNBUSDT", "ADAUSDT", "SOLUSDT"]
+  defaultTimeframe: "1m"       # 1-minute for maximum responsiveness
+  maxHistoryBars: 500          # More history for better analysis
+  reconnect:
+    enabled: true
+    maxAttempts: 20            # More attempts for reliability
+    delayMs: 1000              # Faster reconnection
+    backoffMultiplier: 1.2
+
+# 💰 PROFIT-OPTIMIZED PORTFOLIO BALANCING
+portfolio:
+  symbols: ["BTCUSDT", "ETHUSDT", "BNBUSDT", "ADAUSDT", "SOLUSDT"]
+  targetAllocations:
+    BTCUSDT: 0.40      # 40% - Bitcoin (most stable)
+    ETHUSDT: 0.30      # 30% - Ethereum (high potential)
+    BNBUSDT: 0.20      # 20% - BNB (exchange token)
+    ADAUSDT: 0.05      # 5% - Cardano (diversification)
+    SOLUSDT: 0.05      # 5% - Solana (high growth)
+  rebalanceThreshold: 0.03     # 3% deviation (more sensitive)
+  minTradeAmount: 5             # Lower minimum for more trades
+  maxTradeAmount: 2000          # Higher maximum for profit
+  rebalanceInterval: 2          # 2 hours (more frequent)
+
+# 🚀 AGGRESSIVE TRADING FOR MAXIMUM PROFIT
+aggressiveTrading:
+  enabled: true
+  minConfidence: 0.8           # High confidence threshold
+  minExpectedReturn: 0.3       # Lower minimum return for more opportunities
+  maxDailyTrades: 50           # Increased for more opportunities
+  maxConcurrentTrades: 10       # More concurrent trades
+  maxRiskPercent: 1.0          # Reduced risk per trade
+  maxLeverage: 25              # Higher leverage for profit
+  dynamicStopLoss: true
+  portfolioRebalancing: true
+
+# 🤖 AI CONFIGURATION FOR PROFIT OPTIMIZATION
+ai:
+  engines:
+    - name: "profit-optimizer"
+      enabled: true
+      parameters:
+        profitTarget: 0.5       # 0.5% profit target
+        riskTolerance: 0.3      # 0.3% risk tolerance
+        confidenceThreshold: 0.85
+        
+    - name: "market-sentiment"
+      enabled: true
+      parameters:
+        sentimentWeight: 0.3
+        technicalWeight: 0.7
+        
+    - name: "volatility-predictor"
+      enabled: true
+      parameters:
+        volatilityThreshold: 0.02
+        predictionHorizon: 5    # 5 minutes ahead
+        
+  consensusThreshold: 2         # At least 2 AI engines must agree
+
+# 💰 USDT TRADING CONFIGURATION
+usdtTrading:
+  enabled: true
+  minUSDTBalance: 100          # Minimum 100 USDT to start trading
+  maxPositionSize: 500         # Maximum 500 USDT per position
+  allocationPercentage: 10     # Use 10% of balance per trade
+  leverage: 20                 # 20x leverage for profit
+  riskManagement:
+    maxRiskPerTrade: 1.0       # 1% risk per trade
+    stopLossPercentage: 0.5    # 0.5% stop loss
+    takeProfitPercentage: 1.5   # 1.5% take profit
+
+# 📈 PROFIT MONITORING
+profitMonitoring:
+  enabled: true
+  dailyProfitTarget: 5.0       # 5% daily profit target
+  weeklyProfitTarget: 25.0      # 25% weekly profit target
+  monthlyProfitTarget: 100.0    # 100% monthly profit target
+  alertThresholds:
+    profit: 10.0               # Alert at 10% profit
+    loss: -2.0                 # Alert at -2% loss
+
+# 🔔 NOTIFICATIONS FOR PROFIT TRACKING
+notifications:
+  enabled: true
+  profitAlerts: true
+  lossAlerts: true
+  webhooks:
+    - "https://discord.com/api/webhooks/YOUR/PROFIT/WEBHOOK"
+
+# 📊 LOGGING FOR PROFIT ANALYSIS
+logging:
+  level: "info"
+  file: "logs/production-trading.log"
+  maxFiles: 30
+  maxSize: "50MB"
+  profitTracking: true
+  tradeAnalysis: true

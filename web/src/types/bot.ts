@@ -10,6 +10,7 @@ export interface BotData {
   aggressiveTrading: AggressiveTradingMetrics;
   marketData: MarketData[];
   opportunities: TradingOpportunity[];
+  intentions: TradingIntention[];
   recentTrades: Trade[];
   aiEngine: AIEngineStatus;
   config?: {
@@ -21,6 +22,18 @@ export interface BotData {
     useTestnet?: boolean;
   };
   useTestnet?: boolean;
+  spotRebalancingEnabled?: boolean;
+  strategy?: "moderate" | "intense" | "risky";
+  botConfig?: {
+    maxDailyTrades?: number;
+    maxRiskPerTrade?: number;
+    maxLeverage?: number;
+    stopLoss?: number;
+    takeProfit?: number;
+    minConfidence?: number;
+    cooldownMinutes?: number;
+    maxConcurrentPositions?: number;
+  };
 }
 
 export interface Portfolio {
@@ -96,6 +109,22 @@ export interface TradingOpportunity {
   priority: number;
   reason: string;
   timestamp: number;
+}
+
+export interface TradingIntention {
+  id: string;
+  symbol: string;
+  direction: "long" | "short";
+  quantity: number;
+  leverage: number;
+  confidence: number;
+  timestamp: number;
+  status: "pending" | "executed" | "failed" | "cancelled";
+  result?: {
+    orderId?: string;
+    error?: string;
+    executionTime?: number;
+  };
 }
 
 export interface Trade {

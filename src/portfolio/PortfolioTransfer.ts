@@ -98,11 +98,13 @@ export class PortfolioTransfer {
       const toType: "spot" | "usdt_futures" =
         request.to === "spot" ? "spot" : "usdt_futures";
 
+      // Use correct SpotTransferRequestV2 parameters
       const transferParams = {
         fromType,
         toType,
         amount: String(request.amount),
         coin: request.currency,
+        symbol: "USDTUSDT", // Required field
         clientOid: `transfer_${Date.now()}`,
       };
 
@@ -114,13 +116,14 @@ export class PortfolioTransfer {
       // Use Bitget's transfer API via REST client
       const result = await this.rest.spotTransfer(transferParams);
 
-      if (result && result.data) {
-        this.logger.info(
-          `✅ Transfer successful: ${result.data.transferId || "completed"}`
-        );
+      if (result && result.data && result.data.transferId) {
+        this.logger.info(`✅ Transfer successful: ${result.data.transferId}`);
         return true;
       } else {
-        this.logger.error(`❌ Transfer failed: No data in response`);
+        this.logger.error(
+          `❌ Transfer failed: No transferId in response`,
+          result
+        );
         return false;
       }
     } catch (error: any) {
@@ -219,7 +222,10 @@ export class PortfolioTransfer {
    */
   public async getSpotBalances(): Promise<PortfolioBalance["spot"]> {
     try {
-      const result = await this.rest.getSpotAccountAssets();
+      // Use correct method with optional parameters
+      const result = await this.rest.getSpotAccountAssets({
+        assetType: "hold_only", // Only get assets we actually hold
+      });
 
       const balances: PortfolioBalance["spot"] = {
         USDT: 0,
@@ -242,14 +248,15 @@ export class PortfolioTransfer {
         }
       }
 
+      this.logger.info("✅ Spot balances retrieved:", balances);
       return balances;
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error("❌ Failed to get spot balances:", {
         error: error.message,
         code: error.code,
         status: error.status,
         response: error.response?.data,
-        fullError: error
+        fullError: error,
       });
       return { USDT: 0, BTC: 0, ETH: 0, BNB: 0, MATIC: 0 };
     }
@@ -260,9 +267,9 @@ export class PortfolioTransfer {
    */
   public async getFuturesBalances(): Promise<PortfolioBalance["futures"]> {
     try {
-      const result = await this.rest.getFuturesAccount({
+      // Use correct method - getFuturesAccountAssets instead of getFuturesAccount
+      const result = await this.rest.getFuturesAccountAssets({
         productType: "USDT-FUTURES",
-        marginCoin: "USDT",
       });
 
       const balances: PortfolioBalance["futures"] = {
@@ -275,20 +282,21 @@ export class PortfolioTransfer {
         for (const asset of result.data) {
           if (asset.marginCoin === "USDT") {
             balances.USDT = parseFloat(asset.available || "0");
-            balances.totalEquity = parseFloat(asset.available || "0");
+            balances.totalEquity = parseFloat(asset.available || "0"); // Use available instead of totalEquity
             balances.availableBalance = parseFloat(asset.available || "0");
           }
         }
       }
 
+      this.logger.info("✅ Futures balances retrieved:", balances);
       return balances;
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error("❌ Failed to get futures balances:", {
         error: error.message,
         code: error.code,
         status: error.status,
         response: error.response?.data,
-        fullError: error
+        fullError: error,
       });
       return { USDT: 0, totalEquity: 0, availableBalance: 0 };
     }
@@ -302,23 +310,40 @@ export class PortfolioTransfer {
     usdtAmount: number
   ): Promise<void> {
     try {
+      // Use correct SpotOrderRequestV2 parameters
       const orderParams = {
-        productType: "SPOT" as const,
         symbol: `${symbol}USDT`,
-        marginCoin: "USDT",
-        size: String(usdtAmount),
         side: "buy" as const,
         orderType: "market" as const,
-        force: "gtc" as const,
+        size: String(usdtAmount), // Amount in USDT for market buy
+        force: "gtc" as const, // Required field
         clientOid: `spot_${Date.now()}_${Math.random()
           .toString(36)
           .substr(2, 9)}`,
       };
 
+      this.logger.info(
+        `📤 Placing spot market order: ${usdtAmount} USDT → ${symbol}USDT`
+      );
       const result = await this.rest.spotSubmitOrder(orderParams);
-      this.logger.info(`✅ Spot purchase successful: ${result.data.orderId}`);
-    } catch (error) {
-      this.logger.error(`❌ Spot purchase failed for ${symbol}:`, error);
+
+      if (result && result.data && result.data.orderId) {
+        this.logger.info(`✅ Spot purchase successful: ${result.data.orderId}`);
+      } else {
+        this.logger.error(
+          `❌ Spot purchase failed: No orderId in response`,
+          result
+        );
+        throw new Error("No orderId in response");
+      }
+    } catch (error: any) {
+      this.logger.error(`❌ Spot purchase failed for ${symbol}:`, {
+        error: error.message,
+        code: error.code,
+        status: error.status,
+        response: error.response?.data,
+        fullError: error,
+      });
       throw error;
     }
   }

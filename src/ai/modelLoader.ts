@@ -1,12 +1,12 @@
-import { readFileSync } from 'fs';
-import { join } from 'path';
-import { logger } from '../utils/logger';
+import { readFileSync } from "fs";
+import { join } from "path";
+import { logger } from "../utils/logger.js";
 
 export interface ModelPrediction {
-  action: 'buy' | 'sell' | 'hold';
+  action: "buy" | "sell" | "hold";
   confidence: number;
   expectedPrice?: number;
-  riskLevel?: 'low' | 'medium' | 'high';
+  riskLevel?: "low" | "medium" | "high";
 }
 
 export interface TradingModel {
@@ -16,9 +16,10 @@ export interface TradingModel {
 }
 
 export interface ModelInput {
-  prices: number[];      // Recent price history
-  volumes: number[];     // Recent volume history
-  indicators: {          // Technical indicators
+  prices: number[]; // Recent price history
+  volumes: number[]; // Recent volume history
+  indicators: {
+    // Technical indicators
     rsi: number;
     macd: number;
     bollinger: { upper: number; lower: number; middle: number };
@@ -32,7 +33,7 @@ export interface ModelInput {
 export interface ModelInfo {
   name: string;
   version: string;
-  type: 'onnx' | 'tensorflow' | 'simple';
+  type: "onnx" | "tensorflow" | "simple";
   description: string;
   inputShape: number[];
   outputShape: number[];
@@ -53,28 +54,28 @@ export class ONNXModel implements TradingModel {
 
   async initialize(): Promise<void> {
     try {
-      logger.info('🧠 Initializing ONNX model...', {
-        component: 'ONNXModel',
-        modelPath: this.modelPath
+      logger.info("🧠 Initializing ONNX model...", {
+        component: "ONNXModel",
+        modelPath: this.modelPath,
       });
 
       // Dynamically import ONNX Runtime (will be installed later)
-      const ort = await import('onnxruntime-node');
-      
+      const ort = await import("onnxruntime-node");
+
       // Load model from file
       const modelBuffer = readFileSync(this.modelPath);
       this.session = await ort.InferenceSession.create(modelBuffer);
-      
-      logger.info('✅ ONNX model loaded successfully', {
-        component: 'ONNXModel',
+
+      logger.info("✅ ONNX model loaded successfully", {
+        component: "ONNXModel",
         inputNames: this.session.inputNames,
-        outputNames: this.session.outputNames
+        outputNames: this.session.outputNames,
       });
     } catch (error) {
-      logger.error('❌ Failed to load ONNX model', {
-        component: 'ONNXModel',
+      logger.error("❌ Failed to load ONNX model", {
+        component: "ONNXModel",
         error: error instanceof Error ? error.message : String(error),
-        modelPath: this.modelPath
+        modelPath: this.modelPath,
       });
       throw error;
     }
@@ -82,27 +83,26 @@ export class ONNXModel implements TradingModel {
 
   async predict(input: ModelInput): Promise<ModelPrediction> {
     if (!this.session) {
-      throw new Error('Model not initialized. Call initialize() first.');
+      throw new Error("Model not initialized. Call initialize() first.");
     }
 
     try {
       // Prepare input tensor from market data
       const inputTensor = this.prepareInputTensor(input);
-      
+
       // Run inference
       const feeds = { [this.session.inputNames[0]]: inputTensor };
       const results = await this.session.run(feeds);
-      
+
       // Parse output
       const output = results[this.session.outputNames[0]];
       return this.parseModelOutput(output.data as Float32Array);
-      
     } catch (error) {
-      logger.error('❌ Model prediction failed', {
-        component: 'ONNXModel',
-        error: error instanceof Error ? error.message : String(error)
+      logger.error("❌ Model prediction failed", {
+        component: "ONNXModel",
+        error: error instanceof Error ? error.message : String(error),
       });
-      
+
       // Fallback to simple prediction
       return this.fallbackPrediction(input);
     }
@@ -120,7 +120,7 @@ export class ONNXModel implements TradingModel {
       input.indicators.sma.sma20,
       input.indicators.sma.sma50,
       input.indicators.ema.ema12,
-      input.indicators.ema.ema26
+      input.indicators.ema.ema26,
     ];
 
     // Pad or truncate to expected input shape
@@ -132,40 +132,46 @@ export class ONNXModel implements TradingModel {
     return {
       data: new Float32Array(features),
       dims: [1, expectedLength],
-      type: 'float32'
+      type: "float32",
     };
   }
 
   private parseModelOutput(output: Float32Array): ModelPrediction {
     // Assume model outputs [buy_prob, sell_prob, hold_prob, confidence]
-    const [buyProb = 0, sellProb = 0, holdProb = 0, confidence = 0.5] = Array.from(output);
-    
-    let action: 'buy' | 'sell' | 'hold';
+    const [buyProb = 0, sellProb = 0, holdProb = 0, confidence = 0.5] =
+      Array.from(output);
+
+    let action: "buy" | "sell" | "hold";
     let maxProb = Math.max(buyProb, sellProb, holdProb);
-    
-    if (maxProb === buyProb) action = 'buy';
-    else if (maxProb === sellProb) action = 'sell';
-    else action = 'hold';
+
+    if (maxProb === buyProb) action = "buy";
+    else if (maxProb === sellProb) action = "sell";
+    else action = "hold";
 
     const finalConfidence = confidence || maxProb;
 
     return {
       action,
       confidence: finalConfidence,
-      riskLevel: finalConfidence > 0.8 ? 'low' : finalConfidence > 0.6 ? 'medium' : 'high'
+      riskLevel:
+        finalConfidence > 0.8
+          ? "low"
+          : finalConfidence > 0.6
+          ? "medium"
+          : "high",
     };
   }
 
   private fallbackPrediction(input: ModelInput): ModelPrediction {
     // Simple fallback based on RSI
     const rsi = input.indicators.rsi;
-    
+
     if (rsi < 30) {
-      return { action: 'buy', confidence: 0.7, riskLevel: 'medium' };
+      return { action: "buy", confidence: 0.7, riskLevel: "medium" };
     } else if (rsi > 70) {
-      return { action: 'sell', confidence: 0.7, riskLevel: 'medium' };
+      return { action: "sell", confidence: 0.7, riskLevel: "medium" };
     } else {
-      return { action: 'hold', confidence: 0.5, riskLevel: 'low' };
+      return { action: "hold", confidence: 0.5, riskLevel: "low" };
     }
   }
 
@@ -183,24 +189,24 @@ export class ONNXModel implements TradingModel {
  */
 export class SimpleModel implements TradingModel {
   private modelInfo: ModelInfo = {
-    name: 'Simple Rule-Based Model',
-    version: '1.0.0',
-    type: 'simple',
-    description: 'Basic technical analysis rules',
+    name: "Simple Rule-Based Model",
+    version: "1.0.0",
+    type: "simple",
+    description: "Basic technical analysis rules",
     inputShape: [1, 10],
-    outputShape: [1, 3]
+    outputShape: [1, 3],
   };
 
   async predict(input: ModelInput): Promise<ModelPrediction> {
     const { indicators } = input;
     const currentPrice = input.prices[input.prices.length - 1];
     const previousPrice = input.prices[input.prices.length - 2];
-    
+
     // Validate inputs
     if (!currentPrice || !previousPrice) {
-      return { action: 'hold', confidence: 0.3, riskLevel: 'high' };
+      return { action: "hold", confidence: 0.3, riskLevel: "high" };
     }
-    
+
     // Multi-factor analysis
     let buyScore = 0;
     let sellScore = 0;
@@ -244,22 +250,23 @@ export class SimpleModel implements TradingModel {
     }
 
     // Determine action
-    let action: 'buy' | 'sell' | 'hold';
+    let action: "buy" | "sell" | "hold";
     if (buyScore > sellScore + 1) {
-      action = 'buy';
+      action = "buy";
       confidence = Math.min(0.9, confidence + (buyScore - sellScore) * 0.1);
     } else if (sellScore > buyScore + 1) {
-      action = 'sell';
+      action = "sell";
       confidence = Math.min(0.9, confidence + (sellScore - buyScore) * 0.1);
     } else {
-      action = 'hold';
+      action = "hold";
       confidence = 0.5;
     }
 
     return {
       action,
       confidence,
-      riskLevel: confidence > 0.7 ? 'low' : confidence > 0.5 ? 'medium' : 'high'
+      riskLevel:
+        confidence > 0.7 ? "low" : confidence > 0.5 ? "medium" : "high",
     };
   }
 
@@ -287,27 +294,29 @@ export class TensorFlowModel implements TradingModel {
 
   async initialize(): Promise<void> {
     try {
-      logger.info('🧠 Initializing TensorFlow model...', {
-        component: 'TensorFlowModel',
-        modelPath: this.modelPath
+      logger.info("🧠 Initializing TensorFlow model...", {
+        component: "TensorFlowModel",
+        modelPath: this.modelPath,
       });
 
       // Dynamically import TensorFlow.js (will be available since we installed it)
-      const tf = await import('@tensorflow/tfjs-node');
-      
+      const tf = await import("@tensorflow/tfjs-node");
+
       // Load model from file
-      this.model = await tf.loadLayersModel(`file://${this.modelPath}/model.json`);
-      
-      logger.info('✅ TensorFlow model loaded successfully', {
-        component: 'TensorFlowModel',
+      this.model = await tf.loadLayersModel(
+        `file://${this.modelPath}/model.json`
+      );
+
+      logger.info("✅ TensorFlow model loaded successfully", {
+        component: "TensorFlowModel",
         inputShape: this.model.inputs[0].shape,
-        outputShape: this.model.outputs[0].shape
+        outputShape: this.model.outputs[0].shape,
       });
     } catch (error) {
-      logger.error('❌ Failed to load TensorFlow model', {
-        component: 'TensorFlowModel',
+      logger.error("❌ Failed to load TensorFlow model", {
+        component: "TensorFlowModel",
         error: error instanceof Error ? error.message : String(error),
-        modelPath: this.modelPath
+        modelPath: this.modelPath,
       });
       throw error;
     }
@@ -315,34 +324,36 @@ export class TensorFlowModel implements TradingModel {
 
   async predict(input: ModelInput): Promise<ModelPrediction> {
     if (!this.model) {
-      throw new Error('Model not initialized. Call initialize() first.');
+      throw new Error("Model not initialized. Call initialize() first.");
     }
 
     try {
       // Prepare input tensor from market data
       const inputFeatures = this.prepareInputFeatures(input);
-      
+
       // Import TensorFlow for tensor operations
-      const tf = await import('@tensorflow/tfjs-node');
-      
+      const tf = await import("@tensorflow/tfjs-node");
+
       // Create tensor and run prediction
-      const inputTensor = tf.tensor2d([inputFeatures], [1, inputFeatures.length]);
+      const inputTensor = tf.tensor2d(
+        [inputFeatures],
+        [1, inputFeatures.length]
+      );
       const prediction = this.model.predict(inputTensor) as any;
       const result = await prediction.data();
-      
+
       // Cleanup tensors
       inputTensor.dispose();
       prediction.dispose();
-      
+
       // Parse output
       return this.parseModelOutput(result);
-      
     } catch (error) {
-      logger.error('❌ TensorFlow model prediction failed', {
-        component: 'TensorFlowModel',
-        error: error instanceof Error ? error.message : String(error)
+      logger.error("❌ TensorFlow model prediction failed", {
+        component: "TensorFlowModel",
+        error: error instanceof Error ? error.message : String(error),
       });
-      
+
       // Fallback to simple prediction
       return this.fallbackPrediction(input);
     }
@@ -360,7 +371,7 @@ export class TensorFlowModel implements TradingModel {
       input.indicators.sma.sma20,
       input.indicators.sma.sma50,
       input.indicators.ema.ema12,
-      input.indicators.ema.ema26
+      input.indicators.ema.ema26,
     ];
 
     // Pad or truncate to expected input shape
@@ -373,34 +384,40 @@ export class TensorFlowModel implements TradingModel {
 
   private parseModelOutput(output: Float32Array): ModelPrediction {
     // Assume model outputs [buy_prob, sell_prob, hold_prob, confidence]
-    const [buyProb = 0, sellProb = 0, holdProb = 0, confidence = 0.5] = Array.from(output);
-    
-    let action: 'buy' | 'sell' | 'hold';
+    const [buyProb = 0, sellProb = 0, holdProb = 0, confidence = 0.5] =
+      Array.from(output);
+
+    let action: "buy" | "sell" | "hold";
     let maxProb = Math.max(buyProb, sellProb, holdProb);
-    
-    if (maxProb === buyProb) action = 'buy';
-    else if (maxProb === sellProb) action = 'sell';
-    else action = 'hold';
+
+    if (maxProb === buyProb) action = "buy";
+    else if (maxProb === sellProb) action = "sell";
+    else action = "hold";
 
     const finalConfidence = confidence || maxProb;
 
     return {
       action,
       confidence: finalConfidence,
-      riskLevel: finalConfidence > 0.8 ? 'low' : finalConfidence > 0.6 ? 'medium' : 'high'
+      riskLevel:
+        finalConfidence > 0.8
+          ? "low"
+          : finalConfidence > 0.6
+          ? "medium"
+          : "high",
     };
   }
 
   private fallbackPrediction(input: ModelInput): ModelPrediction {
     // Simple fallback based on RSI (same as ONNX)
     const rsi = input.indicators.rsi;
-    
+
     if (rsi < 30) {
-      return { action: 'buy', confidence: 0.7, riskLevel: 'medium' };
+      return { action: "buy", confidence: 0.7, riskLevel: "medium" };
     } else if (rsi > 70) {
-      return { action: 'sell', confidence: 0.7, riskLevel: 'medium' };
+      return { action: "sell", confidence: 0.7, riskLevel: "medium" };
     } else {
-      return { action: 'hold', confidence: 0.5, riskLevel: 'low' };
+      return { action: "hold", confidence: 0.5, riskLevel: "low" };
     }
   }
 
@@ -418,14 +435,14 @@ export class TensorFlowModel implements TradingModel {
  */
 export class ModelManager {
   private models: Map<string, TradingModel> = new Map();
-  private defaultModel: string = 'simple';
+  private defaultModel: string = "simple";
 
   async loadModel(name: string, modelPath?: string): Promise<void> {
     try {
-      if (name === 'simple') {
+      if (name === "simple") {
         const model = new SimpleModel();
         this.models.set(name, model);
-        logger.info('✅ Simple model loaded', { component: 'ModelManager' });
+        logger.info("✅ Simple model loaded", { component: "ModelManager" });
         return;
       }
 
@@ -434,23 +451,29 @@ export class ModelManager {
       }
 
       // Check if it's a TensorFlow model (has model.json)
-      if (modelPath.includes('mock-trading-model') || modelPath.endsWith('/model.json')) {
+      if (
+        modelPath.includes("mock-trading-model") ||
+        modelPath.endsWith("/model.json")
+      ) {
         const modelInfo: ModelInfo = {
           name: name,
-          version: '1.0.0',
-          type: 'tensorflow',
+          version: "1.0.0",
+          type: "tensorflow",
           description: `TensorFlow trading model: ${name}`,
           inputShape: [1, 48],
-          outputShape: [1, 4]
+          outputShape: [1, 4],
         };
 
-        const tfModel = new TensorFlowModel(modelPath.replace('/model.json', ''), modelInfo);
+        const tfModel = new TensorFlowModel(
+          modelPath.replace("/model.json", ""),
+          modelInfo
+        );
         await tfModel.initialize();
-        
+
         this.models.set(name, tfModel);
-        logger.info('✅ TensorFlow model loaded successfully', {
-          component: 'ModelManager',
-          modelName: name
+        logger.info("✅ TensorFlow model loaded successfully", {
+          component: "ModelManager",
+          modelName: name,
         });
         return;
       }
@@ -458,42 +481,44 @@ export class ModelManager {
       // Try to load ONNX model
       const modelInfo: ModelInfo = {
         name: name,
-        version: '1.0.0',
-        type: 'onnx',
+        version: "1.0.0",
+        type: "onnx",
         description: `ONNX trading model: ${name}`,
         inputShape: [1, 48],
-        outputShape: [1, 4]
+        outputShape: [1, 4],
       };
 
       const onnxModel = new ONNXModel(modelPath, modelInfo);
       await onnxModel.initialize();
-      
+
       this.models.set(name, onnxModel);
-      logger.info('✅ ONNX model loaded successfully', {
-        component: 'ModelManager',
-        modelName: name
+      logger.info("✅ ONNX model loaded successfully", {
+        component: "ModelManager",
+        modelName: name,
+      });
+    } catch (error) {
+      logger.warn("⚠️ Failed to load model, falling back to simple model", {
+        component: "ModelManager",
+        modelName: name,
+        error: error instanceof Error ? error.message : String(error),
       });
 
-    } catch (error) {
-      logger.warn('⚠️ Failed to load model, falling back to simple model', {
-        component: 'ModelManager',
-        modelName: name,
-        error: error instanceof Error ? error.message : String(error)
-      });
-      
       // Fallback to simple model, but don't set it under the requested name
-      if (!this.models.has('simple')) {
-        this.models.set('simple', new SimpleModel());
+      if (!this.models.has("simple")) {
+        this.models.set("simple", new SimpleModel());
       }
-      
+
       // Don't create the requested model if it failed to load
       throw error;
     }
   }
 
-  async predict(input: ModelInput, modelName?: string): Promise<ModelPrediction> {
+  async predict(
+    input: ModelInput,
+    modelName?: string
+  ): Promise<ModelPrediction> {
     const model = this.models.get(modelName || this.defaultModel);
-    
+
     if (!model) {
       throw new Error(`Model not found: ${modelName || this.defaultModel}`);
     }

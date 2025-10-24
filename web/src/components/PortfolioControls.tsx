@@ -40,7 +40,7 @@ export function PortfolioControls({
         console.log(statusMsg);
 
         const response = await fetch(
-          "http://localhost:8080/api/portfolio/allocate",
+          "http://localhost:8081/api/portfolio/allocate",
           {
             method: "POST",
             headers: { "Content-Type": "application/json" },
@@ -54,7 +54,10 @@ export function PortfolioControls({
         }
 
         console.log("Capital allocated successfully:", result);
-        showSuccess("Capital Allocated", result.message || "Capital allocated successfully");
+        showSuccess(
+          "Capital Allocated",
+          result.message || "Capital allocated successfully"
+        );
 
         // Call callback if provided
         if (onAllocateCapital) {
@@ -62,7 +65,10 @@ export function PortfolioControls({
         }
       } catch (error) {
         console.error("Failed to allocate capital:", error);
-        showError("Allocation Failed", error instanceof Error ? error.message : "Failed to allocate capital");
+        showError(
+          "Allocation Failed",
+          error instanceof Error ? error.message : "Failed to allocate capital"
+        );
       } finally {
         setIsRebalancing(false);
       }
@@ -76,7 +82,7 @@ export function PortfolioControls({
       // Call API directly
       console.log("⚖️ Triggering rebalance");
       const response = await fetch(
-        "http://localhost:8080/api/portfolio/rebalance",
+        "http://localhost:8081/api/portfolio/rebalance",
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -89,7 +95,10 @@ export function PortfolioControls({
       }
 
       console.log("Rebalance triggered successfully:", result);
-      showSuccess("Rebalance Triggered", result.message || "Rebalance triggered successfully");
+      showSuccess(
+        "Rebalance Triggered",
+        result.message || "Rebalance triggered successfully"
+      );
 
       // Call callback if provided
       if (onTriggerRebalance) {
@@ -97,7 +106,10 @@ export function PortfolioControls({
       }
     } catch (error) {
       console.error("Failed to trigger rebalance:", error);
-      showError("Rebalance Failed", error instanceof Error ? error.message : "Failed to trigger rebalance");
+      showError(
+        "Rebalance Failed",
+        error instanceof Error ? error.message : "Failed to trigger rebalance"
+      );
     } finally {
       setIsRebalancing(false);
     }
@@ -156,7 +168,7 @@ export function PortfolioControls({
       const updates = Object.entries(tempAllocations).map(
         async ([symbol, percentage]) => {
           const response = await fetch(
-            `http://localhost:8080/api/portfolio/allocation/${symbol}`,
+            `http://localhost:8081/api/portfolio/allocation/${symbol}`,
             {
               method: "PUT",
               headers: { "Content-Type": "application/json" },
@@ -176,7 +188,10 @@ export function PortfolioControls({
       await Promise.all(updates);
 
       console.log("All allocations updated successfully");
-      showSuccess("Allocations Updated", "Portfolio allocations updated successfully");
+      showSuccess(
+        "Allocations Updated",
+        "Portfolio allocations updated successfully"
+      );
 
       // Call callbacks if provided
       if (onUpdateAllocation) {
@@ -188,7 +203,10 @@ export function PortfolioControls({
       setEditingAllocations(false);
     } catch (error) {
       console.error("Failed to save allocations:", error);
-      showError("Save Failed", error instanceof Error ? error.message : "Failed to save allocations");
+      showError(
+        "Save Failed",
+        error instanceof Error ? error.message : "Failed to save allocations"
+      );
     }
   };
 
@@ -196,6 +214,39 @@ export function PortfolioControls({
     (sum, val) => sum + val,
     0
   );
+
+  const [strategy, setStrategy] = useState<"moderate" | "intense" | "risky">(
+    "moderate"
+  );
+
+  const handleUpdateStrategy = async () => {
+    try {
+      // Call API directly
+      console.log("🎯 Updating strategy:", strategy);
+      const response = await fetch("http://localhost:8081/api/bot/strategy", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ strategy }),
+      });
+
+      const result = await response.json();
+      if (!response.ok) {
+        throw new Error(result.error || "Failed to update strategy");
+      }
+
+      console.log("Strategy updated successfully:", result);
+      showSuccess(
+        "Strategy Updated",
+        result.message || "Strategy updated successfully"
+      );
+    } catch (error) {
+      console.error("Failed to update strategy:", error);
+      showError(
+        "Update Failed",
+        error instanceof Error ? error.message : "Failed to update strategy"
+      );
+    }
+  };
 
   return (
     <div className="trading-card p-6">
@@ -244,6 +295,37 @@ export function PortfolioControls({
               </button>
             </div>
           )}
+        </div>
+      </div>
+
+      {/* Strategy Selection Section */}
+      <div className="mb-6 p-4 bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 rounded-lg border border-purple-200 dark:border-purple-700/50">
+        <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-3 flex items-center gap-2">
+          🎯 Risk Strategy
+        </h3>
+        <div className="flex items-center gap-3">
+          <div className="flex-1">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              Select Strategy
+            </label>
+            <select
+              value={strategy}
+              onChange={(e) =>
+                setStrategy(e.target.value as "moderate" | "intense" | "risky")
+              }
+              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 bg-white text-gray-900 dark:bg-gray-700 dark:text-white"
+            >
+              <option value="moderate">Moderate</option>
+              <option value="intense">Intense</option>
+              <option value="risky">Risky</option>
+            </select>
+          </div>
+          <button
+            onClick={handleUpdateStrategy}
+            className="px-6 py-2 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white rounded-lg font-medium flex items-center gap-2"
+          >
+            Update
+          </button>
         </div>
       </div>
 

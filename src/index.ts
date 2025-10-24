@@ -5,7 +5,7 @@ import { logger } from "./utils/logger.js";
 import { subscribeKlines } from "./marketdata/stream.js";
 import { AIEngine } from "./signals/aiEngine.js";
 import { EnhancedAIEngine } from "./ai/EnhancedAIEngine.js";
-import { open, getBalance, getPositions } from "./trading/executor";
+import { open, getBalance, getPositions } from "./trading/executor.js";
 import {
   sizeByRisk,
   throttleByOpenPositions,
@@ -20,9 +20,14 @@ import {
   RebalanceAction,
 } from "./portfolio/PortfolioBalancer.js";
 import { PortfolioTransfer } from "./portfolio/PortfolioTransfer.js";
-import { SpotAutoBalancer, AutoBalancerConfig } from "./portfolio/SpotAutoBalancer.js";
+import {
+  SpotAutoBalancer,
+  AutoBalancerConfig,
+} from "./portfolio/SpotAutoBalancer.js";
+
 import { BotState, PositionIntent, Bar } from "./types/index.js";
 import { BotWebSocketAdapter } from "./api/BotWebSocketAdapter.js";
+import { USDTTradingManager } from "./trading/USDTTradingManager.js";
 
 /**
  * Main trading bot class
@@ -35,6 +40,7 @@ class BitgetTradingBot {
   private portfolioBalancer: PortfolioBalancer;
   private portfolioTransfer!: PortfolioTransfer;
   private spotAutoBalancer!: SpotAutoBalancer;
+  private usdtTradingManager!: USDTTradingManager;
   private wsAdapter: BotWebSocketAdapter;
   private rest: any;
   private ws: any;
@@ -74,40 +80,62 @@ class BitgetTradingBot {
     try {
       this.logger.info("Starting Bitget Trading Bot...");
 
-      // Load configuration
+      // 1. Load configuration
       const configPath = process.env.CONFIG_PATH || "./config/bot.yaml";
       const config = await configManager.loadConfig(configPath);
 
-      // Update risk manager with config values
+      // 2. Update risk manager
       this.riskManager = new RiskManager(
         config.globalRisk.maxEquityRisk,
         config.globalRisk.maxDailyLoss,
         config.globalRisk.maxConsecutiveLosses
       );
 
-      // Initialize Bitget clients with proper environment detection
-      // Use runtime config or default to testnet for safety
+      // 3. Initialize Bitget clients
       const isTestnet = this.isTestnetMode();
-
       const { rest, ws } = createBitget(
         config.api.key,
         config.api.secret,
         config.api.passphrase,
         isTestnet
       );
-
       this.rest = rest;
       this.ws = ws;
 
-      this.logger.info("🔍 Validating API connection...");
+      // 4. Start WebSocket server for dashboard EARLY
+      await this.wsAdapter.start();
+      this.logger.info("📡 WebSocket dashboard server started");
 
-      // Comprehensive API connection tests
+      // 5. Set WebSocket callbacks
+      this.wsAdapter.setRestClient(this.rest);
+      this.wsAdapter.webSocketServer.setRestClient(this.rest);
+      this.wsAdapter.setPortfolioControlCallbacks({
+        onAllocateCapital: async (amount: number) =>
+          await this.allocateCapitalToPortfolio(amount),
+        onTriggerRebalance: async () => await this.triggerManualRebalance(),
+        onUpdateAllocation: async (symbol: string, percentage: number) =>
+          await this.updatePortfolioAllocation(symbol, percentage),
+        onSwitchTradingMode: async (mode: string, useTestnet: boolean) =>
+          await this.switchTradingMode(mode, useTestnet),
+      });
+
+      // 6. Validate API connection
+      this.logger.info("🔍 Validating API connection...");
       await this.validateAPIConnection();
 
-      // Load AI engine
+      // 7. Load AI engine
       await this.aiEngine.load();
 
-      // 📊 Initialize portfolio transfer system
+      // 7.5. Initialize USDT Trading Manager with AI confirmation
+      this.usdtTradingManager = new USDTTradingManager(
+        this.rest,
+        this.aiEngine
+      );
+      this.logger.info(
+        "💰 USDT Trading Manager initialized with AI confirmation (40% weight)"
+      );
+
+      // 8. Initialize portfolio transfer system
       this.logger.info("🔄 Initializing dual portfolio system...");
       this.portfolioTransfer = new PortfolioTransfer(this.rest, {
         apiKey: process.env.BITGET_API_KEY || "",
@@ -116,71 +144,46 @@ class BitgetTradingBot {
       });
       this.logger.info("✅ Portfolio transfer system initialized");
 
-      // 📊 Initialize portfolio balancer
+      // 9. Initialize portfolio balancer
       this.logger.info("📊 Initializing portfolio balancer...");
       await this.portfolioBalancer.loadConfig();
       this.logger.info("✅ Portfolio balancer initialized");
 
-      // 🎯 Initialize Spot Auto-Balancer
+      // 10. Initialize Spot Auto-Balancer
       this.logger.info("🎯 Initializing Spot Auto-Balancer...");
       const autoBalancerConfig: AutoBalancerConfig = {
         enabled: true,
-        minUsdtThreshold: 10, // Minimum 10 USDT to trigger auto-balancing
-        checkIntervalMs: 60000, // Check every 60 seconds
+        minUsdtThreshold: 10,
+        checkIntervalMs: 60000,
         targetAllocations: {
-          BTCUSDT: 0.30,
+          BTCUSDT: 0.3,
           ETHUSDT: 0.25,
           BNBUSDT: 0.42,
           MATICUSDT: 0.03,
         },
+        force: "gtc",
       };
       this.spotAutoBalancer = new SpotAutoBalancer(
         this.rest,
         this.portfolioTransfer,
         autoBalancerConfig
       );
-      
-      // Set WebSocket adapter for broadcasting events
       this.spotAutoBalancer.setWebSocketAdapter(this.wsAdapter);
-      
+      this.logger.info("🚀 Starting Spot Auto-Balancer...");
       await this.spotAutoBalancer.start();
       this.logger.info("✅ Spot Auto-Balancer initialized and started");
 
-      // Get initial account balance
+      // 11. Get initial account balance
       await this.updateEquity();
 
-      // Subscribe to market data for all configured symbols
+      // 12. Subscribe to market data
       await this.subscribeToMarketData();
 
-      // Start WebSocket server for dashboard
-      await this.wsAdapter.start();
-
-      // Set the REST client for transfers
-      this.wsAdapter.setRestClient(this.rest);
-      this.wsAdapter.webSocketServer.setRestClient(this.rest);
-
-      // Register portfolio control callbacks
-      this.wsAdapter.setPortfolioControlCallbacks({
-        onAllocateCapital: async (amount: number) => {
-          return await this.allocateCapitalToPortfolio(amount);
-        },
-        onTriggerRebalance: async () => {
-          return await this.triggerManualRebalance();
-        },
-        onUpdateAllocation: async (symbol: string, percentage: number) => {
-          return await this.updatePortfolioAllocation(symbol, percentage);
-        },
-        onSwitchTradingMode: async (mode: string, useTestnet: boolean) => {
-          return await this.switchTradingMode(mode, useTestnet);
-        },
-      });
-
-      this.logger.info("📊 WebSocket dashboard server started");
-
+      // 13. Finalize startup
       this.isRunning = true;
-      this.logger.info("Trading bot started successfully");
+      this.logger.info("✅ Trading bot started successfully");
 
-      // Start monitoring loop
+      // 14. Start monitoring loop
       this.startMonitoring();
     } catch (error) {
       this.logger.error(`Failed to start bot: ${error}`);
@@ -265,6 +268,38 @@ class BitgetTradingBot {
           price: bar.close,
         });
         this.logger.info({ signal }, `📊 FULL SIGNAL OBJECT`);
+
+        // Process USDT trading opportunity with AI confirmation
+        if (this.usdtTradingManager && this.usdtTradingManager.isEnabled()) {
+          try {
+            const usdtResult =
+              await this.usdtTradingManager.processTradingOpportunity(
+                symbol,
+                bar,
+                signal
+              );
+
+            if (usdtResult && usdtResult.success) {
+              this.logger.info(
+                `💰 USDT Trade Executed: ${symbol} ${usdtResult.direction} ${usdtResult.quantity} USDT @ ${usdtResult.leverage}x`,
+                {
+                  orderId: usdtResult.orderId,
+                  aiConfirmed: usdtResult.aiConfirmed,
+                  confidence: usdtResult.confidence,
+                  reasoning: usdtResult.reasoning,
+                }
+              );
+            } else if (usdtResult && !usdtResult.success) {
+              this.logger.info(
+                `❌ USDT Trade Rejected: ${symbol} - ${usdtResult.reasoning}`
+              );
+            }
+          } catch (error: any) {
+            this.logger.error(
+              `❌ USDT Trading error for ${symbol}: ${error.message}`
+            );
+          }
+        }
 
         if (signal.confidence < instruction.signals.minConfidence) {
           this.logger.debug(
@@ -386,6 +421,139 @@ class BitgetTradingBot {
         `Error processing price update for ${symbol}: ${error}`
       );
       this.logger.error({ error, symbol }, `🔴 FULL PRICE UPDATE ERROR`);
+    }
+  }
+
+  /**
+   * Continuously invest available futures balance into the best opportunity.
+   */
+  private async continuouslyInvestFuturesBalance(): Promise<void> {
+    try {
+      const config = await configManager.getConfig();
+      const futuresBalance = await getBalance(this.rest);
+      const availableUsdt = parseFloat(
+        futuresBalance.data?.find((a) => a.marginCoin === "USDT")?.available ||
+          "0"
+      );
+
+      this.logger.info(`💰 Available Futures Balance: ${availableUsdt} USDT`);
+
+      // Only trade if we have more than 10 USDT
+      if (availableUsdt < 10) {
+        this.logger.info(
+          "💡 Futures balance below 10 USDT, skipping investment cycle."
+        );
+        return;
+      }
+
+      // Process USDT trading opportunities for all symbols
+      if (this.usdtTradingManager && this.usdtTradingManager.isEnabled()) {
+        this.logger.info(
+          "💰 Processing USDT trading opportunities with AI confirmation..."
+        );
+
+        for (const symbol of config.marketData.symbols) {
+          const marketData = this.marketData.get(symbol);
+          if (!marketData) continue;
+
+          let signal;
+          if (this.aiEngine instanceof EnhancedAIEngine) {
+            signal = this.aiEngine.generateEnhanced(marketData, symbol, "15m");
+          } else {
+            signal = this.aiEngine.generate(marketData, symbol, "15m");
+          }
+          if (!signal) continue;
+
+          try {
+            const usdtResult =
+              await this.usdtTradingManager.processTradingOpportunity(
+                symbol,
+                marketData,
+                signal
+              );
+
+            if (usdtResult && usdtResult.success) {
+              this.logger.info(
+                `💰 USDT Trade Executed: ${symbol} ${usdtResult.direction} ${usdtResult.quantity} USDT @ ${usdtResult.leverage}x`,
+                {
+                  orderId: usdtResult.orderId,
+                  aiConfirmed: usdtResult.aiConfirmed,
+                  confidence: usdtResult.confidence,
+                  reasoning: usdtResult.reasoning,
+                }
+              );
+            }
+          } catch (error: any) {
+            this.logger.error(
+              `❌ USDT Trading error for ${symbol}: ${error.message}`
+            );
+          }
+        }
+      }
+
+      // Find the single best opportunity right now
+      let bestOpportunity: TradingOpportunity | null = null;
+
+      for (const symbol of config.marketData.symbols) {
+        const marketData = this.marketData.get(symbol);
+        if (!marketData) continue;
+
+        let signal;
+        if (this.aiEngine instanceof EnhancedAIEngine) {
+          signal = this.aiEngine.generateEnhanced(marketData, symbol, "15m");
+        } else {
+          signal = this.aiEngine.generate(marketData, symbol, "15m");
+        }
+        if (!signal) continue;
+
+        const opportunity = await this.decisionEngine.evaluateOpportunity(
+          symbol,
+          signal,
+          marketData,
+          this.botState.equity.USDT || 0
+        );
+
+        if (opportunity) {
+          if (
+            !bestOpportunity ||
+            opportunity.priority > bestOpportunity.priority
+          ) {
+            bestOpportunity = opportunity;
+          }
+        }
+      }
+
+      if (bestOpportunity) {
+        this.logger.info(
+          `🏆 Best opportunity found: ${bestOpportunity.symbol} (${
+            bestOpportunity.signal.direction
+          }) with priority ${bestOpportunity.priority.toFixed(2)}`
+        );
+
+        // Use the entire available balance for this trade
+        const tradeAmount = availableUsdt;
+        const leverage = 5; // Use a moderate fixed leverage
+
+        const intent: PositionIntent = {
+          symbol: bestOpportunity.symbol,
+          direction: bestOpportunity.signal.direction,
+          quantity: tradeAmount,
+          leverage: leverage,
+          orderType: "market",
+          price: this.marketData.get(bestOpportunity.symbol)?.close || 0,
+        };
+
+        this.logger.warn(
+          `🔥 EXECUTING TRADE WITH FULL FUTURES BALANCE: ${tradeAmount} USDT on ${intent.symbol}`
+        );
+        await this.executeTrade(intent, "continuous-investment");
+      } else {
+        this.logger.info(
+          "🧐 No suitable trading opportunities found in this cycle."
+        );
+      }
+    } catch (error) {
+      this.logger.error("❌ Error in continuous investment process:", error);
     }
   }
 
@@ -1118,8 +1286,8 @@ class BitgetTradingBot {
         // Update equity every 30 seconds
         await this.updateEquity();
 
-        // Execute aggressive trading strategy
-        await this.processAggressiveTrading();
+        // Continuously invest futures balance
+        await this.continuouslyInvestFuturesBalance();
 
         // Process portfolio rebalancing
         await this.processPortfolioRebalancing();
@@ -1547,7 +1715,6 @@ class BitgetTradingBot {
       this.logger.error("Failed to broadcast bot data:", error);
     }
   }
-
 
   /**
    * Emergency stop - close all positions
@@ -2017,7 +2184,7 @@ class BitgetTradingBot {
     }
 
     const config = configManager.getConfig();
-    return config.api?.useTestnet ?? true; // Default to testnet for safety
+    return config.api?.useTestnet ?? false; // Default to production
   }
 
   /**

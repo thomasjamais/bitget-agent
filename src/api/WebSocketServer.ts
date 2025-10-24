@@ -13,6 +13,7 @@ export class TradingBotWebSocketServer {
   private port: number;
   private latestBotData: BotData | null = null;
   private rest: any;
+  private botInstance: any = null;
   private portfolioControlCallbacks: {
     onAllocateCapital?: (amount: number) => Promise<any>;
     onTriggerRebalance?: () => Promise<any>;
@@ -41,6 +42,8 @@ export class TradingBotWebSocketServer {
           "http://127.0.0.1:3001",
           "http://localhost:3333",
           "http://127.0.0.1:3333",
+          "http://localhost:4000",
+          "http://127.0.0.1:4000",
         ],
         credentials: true,
       })
@@ -180,6 +183,116 @@ export class TradingBotWebSocketServer {
         return res
           .status(500)
           .json({ error: "Failed to switch mode: " + error.message });
+      }
+    });
+
+    // Trading strategy selection endpoint
+    this.app.post("/api/bot/strategy", async (req: Request, res: Response) => {
+      try {
+        const { strategy } = req.body;
+
+        if (!strategy || !["moderate", "intense", "risky"].includes(strategy)) {
+          return res.status(400).json({
+            error:
+              "Strategy is required and must be 'moderate', 'intense', or 'risky'",
+          });
+        }
+
+        logger.info(`🎯 API: Setting trading strategy to ${strategy}`);
+
+        // Store strategy in bot state
+        this.latestBotData = {
+          ...this.latestBotData,
+          strategy: strategy,
+        } as any;
+
+        // Update risk strategy in the bot if available
+        if (
+          this.botInstance &&
+          typeof this.botInstance.updateRiskStrategy === "function"
+        ) {
+          this.botInstance.updateRiskStrategy(strategy);
+        }
+
+        return res.json({
+          success: true,
+          message: `Trading strategy set to ${strategy}`,
+          strategy,
+        });
+      } catch (error: any) {
+        logger.error("❌ Strategy update failed:", error);
+        return res
+          .status(500)
+          .json({ error: "Failed to update strategy: " + error.message });
+      }
+    });
+
+    // Spot rebalancing toggle endpoint
+    this.app.post(
+      "/api/bot/spot-rebalancing",
+      async (req: Request, res: Response) => {
+        try {
+          const { enabled } = req.body;
+
+          if (typeof enabled !== "boolean") {
+            return res.status(400).json({
+              error: "Enabled flag is required and must be boolean",
+            });
+          }
+
+          logger.info(`🔄 API: Setting spot rebalancing to ${enabled}`);
+
+          // Store rebalancing setting in bot state
+          this.latestBotData = {
+            ...this.latestBotData,
+            spotRebalancingEnabled: enabled,
+          } as any;
+
+          return res.json({
+            success: true,
+            message: `Spot rebalancing ${enabled ? "enabled" : "disabled"}`,
+            enabled,
+          });
+        } catch (error: any) {
+          logger.error("❌ Rebalancing update failed:", error);
+          return res
+            .status(500)
+            .json({ error: "Failed to update rebalancing: " + error.message });
+        }
+      }
+    );
+
+    // Bot configuration update endpoint
+    this.app.post("/api/bot/config", async (req: Request, res: Response) => {
+      try {
+        const config = req.body;
+
+        logger.info(`⚙️ API: Updating bot configuration:`, config);
+
+        // Store configuration in bot state
+        this.latestBotData = {
+          ...this.latestBotData,
+          botConfig: config,
+        } as any;
+
+        // Update bot configuration if available
+        if (
+          this.botInstance &&
+          typeof this.botInstance.updateBotConfiguration === "function"
+        ) {
+          this.botInstance.updateBotConfiguration(config);
+        }
+
+        return res.json({
+          success: true,
+          message: "Bot configuration updated",
+          config,
+        });
+      } catch (error: any) {
+        logger.error("❌ Config update failed:", error);
+        return res
+          .status(500)
+          .json({ error: "Failed to update config: " + error.message });
       }
     });
 
@@ -395,6 +508,20 @@ export class TradingBotWebSocketServer {
     this.rest = rest;
   }
 
+  /**
+   * Set bot instance for direct method calls
+   */
+  public setBotInstance(botInstance: any) {
+    this.botInstance = botInstance;
+  }
+
+  /**
+   * Get latest bot data for external access
+   */
+  public getLatestBotData() {
+    return this.latestBotData;
+  }
+
   private async triggerPortfolioAllocation(amount: number) {
     if (this.portfolioControlCallbacks.onAllocateCapital) {
       return await this.portfolioControlCallbacks.onAllocateCapital(amount);
@@ -439,6 +566,24 @@ export class TradingBotWebSocketServer {
 
   public start(): Promise<void> {
     return new Promise((resolve) => {
+      this.app.put("/api/bot/strategy", (req: Request, res: Response) => {
+        const { strategy } = req.body;
+        if (
+          this.botInstance &&
+          (strategy === "moderate" ||
+            strategy === "intense" ||
+            strategy === "risky")
+        ) {
+          this.botInstance.updateRiskStrategy(strategy);
+          res.json({
+            success: true,
+            message: `Strategy updated to ${strategy}`,
+          });
+        } else {
+          res.status(400).json({ success: false, error: "Invalid strategy" });
+        }
+      });
+
       this.server.listen(this.port, () => {
         logger.info(`🚀 WebSocket server started on port ${this.port}`);
         logger.info(`📊 Dashboard available at: http://localhost:3000`);

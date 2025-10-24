@@ -31,7 +31,7 @@ export async function POST(request: NextRequest) {
 
     // Call the bot's WebSocket server to handle the transfer
     try {
-      const response = await fetch("http://localhost:8080/api/transfer", {
+      const response = await fetch("http://localhost:8081/api/transfer", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -43,7 +43,9 @@ export async function POST(request: NextRequest) {
         const result = await response.json();
         return NextResponse.json({
           success: true,
-          message: result.message || `Transfer completed: ${amount} ${currency} from ${from} to ${to}`,
+          message:
+            result.message ||
+            `Transfer completed: ${amount} ${currency} from ${from} to ${to}`,
           transferId: result.transferId || `transfer_${Date.now()}`,
         });
       } else {

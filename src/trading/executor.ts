@@ -49,6 +49,7 @@ export const open = async (rest: RestClientV2, intent: PositionIntent) => {
     logger.info(`📊 Using spot market orders (no price needed)`);
 
     // Use futures API for scalping strategies with leverage
+    // Try unilateral position API first to avoid 40774 error
     const orderParams = {
       productType: "USDT-FUTURES" as const,
       symbol: intent.symbol,
@@ -57,6 +58,8 @@ export const open = async (rest: RestClientV2, intent: PositionIntent) => {
       size: formattedSize, // USDT amount for market orders, formatted to 2 decimals
       side,
       orderType: "market" as const, // Use market orders for immediate execution
+      holdSide: intent.direction === "long" ? "long" : "short", // Specify hold side for unilateral positions
+      reduceOnly: "NO" as const, // Not a reduce-only order
       clientOid: `bot_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
     };
 
@@ -73,7 +76,42 @@ export const open = async (rest: RestClientV2, intent: PositionIntent) => {
     );
 
     logger.info({ orderParams }, `📝 Submitting order`);
-    const orderResult = await rest.futuresSubmitOrder(orderParams);
+
+    let orderResult;
+    try {
+      // Try with unilateral position API first
+      logger.info(`🔄 Using unilateral position API to avoid 40774 error...`);
+
+      const unilateralParams = {
+        ...orderParams,
+        holdSide: intent.direction === "long" ? "long" : "short",
+        reduceOnly: "NO" as const,
+      };
+
+      orderResult = await rest.futuresSubmitOrder(unilateralParams);
+    } catch (unilateralError: any) {
+      // If unilateral position error, try with standard API
+      if (unilateralError.body?.code === "40774") {
+        logger.info(`🔄 Retrying with standard futures API...`);
+
+        const standardParams = {
+          productType: "USDT-FUTURES" as const,
+          symbol: intent.symbol,
+          marginCoin,
+          marginMode: "crossed" as const,
+          size: formattedSize,
+          side,
+          orderType: "market" as const,
+          clientOid: `bot_${Date.now()}_${Math.random()
+            .toString(36)
+            .substr(2, 9)}`,
+        };
+
+        orderResult = await rest.futuresSubmitOrder(standardParams);
+      } else {
+        throw unilateralError;
+      }
+    }
 
     logger.info(`✅ Order placed successfully: ${orderResult.data.orderId}`);
 

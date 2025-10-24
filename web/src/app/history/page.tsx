@@ -13,7 +13,7 @@ export default function HistoryPage() {
   const [sortBy, setSortBy] = useState<"time" | "pnl" | "symbol">("time");
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
 
-  const { data, connected } = useWebSocket("ws://localhost:8080/ws");
+  const { data, connected } = useWebSocket("ws://localhost:8081/ws");
 
   useEffect(() => {
     setIsConnected(connected);

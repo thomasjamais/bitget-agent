@@ -42,6 +42,7 @@ export class BotWebSocketAdapter {
     onTriggerRebalance?: () => Promise<any>;
     onUpdateAllocation?: (symbol: string, percentage: number) => Promise<any>;
     onSwitchTradingMode?: (mode: string, useTestnet: boolean) => Promise<any>;
+    onUpdateRiskStrategy?: (strategy: "moderate" | "intense" | "risky") => void;
   }): void {
     this.wsServer.setPortfolioControlCallbacks(callbacks);
   }

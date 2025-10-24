@@ -9,7 +9,7 @@ export default function TradesPage() {
   const [isConnected, setIsConnected] = useState(false);
   const [filter, setFilter] = useState<"all" | "active" | "recent">("all");
 
-  const { data, connected } = useWebSocket("ws://localhost:8080/ws");
+  const { data, connected } = useWebSocket("ws://localhost:8081/ws");
 
   useEffect(() => {
     setIsConnected(connected);

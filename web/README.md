@@ -82,7 +82,7 @@ web/
 
 ## WebSocket API
 
-The dashboard connects to the bot's WebSocket server at `ws://localhost:8080/ws`
+The dashboard connects to the bot's WebSocket server at `ws://localhost:8081/ws`
 
 ### Message Types
 
@@ -117,10 +117,10 @@ Create `.env.local` in the web directory:
 
 ```bash
 # WebSocket server URL
-NEXT_PUBLIC_WS_URL=ws://localhost:8080/ws
+NEXT_PUBLIC_WS_URL=ws://localhost:8081/ws
 
 # API endpoints
-NEXT_PUBLIC_API_URL=http://localhost:8080/api
+NEXT_PUBLIC_API_URL=http://localhost:8081/api
 ```
 
 ### Tailwind Theme
@@ -207,7 +207,7 @@ For production deployment:
 ## Troubleshooting
 
 **Connection Issues:**
-- Check WebSocket server is running on port 8080
+- Check WebSocket server is running on port 8081
 - Verify firewall settings
 - Check browser console for WebSocket errors
 

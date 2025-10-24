@@ -16,8 +16,8 @@ const nextConfig = {
   async rewrites() {
     return [
       {
-        source: '/api/ws/:path*',
-        destination: 'http://localhost:8080/api/ws/:path*',
+        source: "/api/ws/:path*",
+        destination: "http://localhost:8081/api/ws/:path*",
       },
     ];
   },

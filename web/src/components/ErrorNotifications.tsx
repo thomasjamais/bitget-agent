@@ -12,8 +12,11 @@ export function ErrorNotifications() {
     const handleMessage = (event: MessageEvent) => {
       try {
         const data = JSON.parse(event.data);
-        
-        if (data.type === "transfer_error" || data.type === "transfer_success") {
+
+        if (
+          data.type === "transfer_error" ||
+          data.type === "transfer_success"
+        ) {
           // These will be handled by the context
         }
       } catch (error) {
@@ -22,14 +25,13 @@ export function ErrorNotifications() {
     };
 
     // Listen for WebSocket connection
-    const ws = new WebSocket("ws://localhost:8080/ws");
+    const ws = new WebSocket("ws://localhost:8081/ws");
     ws.onmessage = handleMessage;
 
     return () => {
       ws.close();
     };
   }, []);
-
 
   const getIcon = (type: string) => {
     switch (type) {
@@ -70,7 +72,9 @@ export function ErrorNotifications() {
       {notifications.map((notification) => (
         <div
           key={notification.id}
-          className={`p-4 rounded-lg border ${getBgColor(notification.type)} backdrop-blur-sm animate-in slide-in-from-right duration-300`}
+          className={`p-4 rounded-lg border ${getBgColor(
+            notification.type
+          )} backdrop-blur-sm animate-in slide-in-from-right duration-300`}
         >
           <div className="flex items-start space-x-3">
             {getIcon(notification.type)}

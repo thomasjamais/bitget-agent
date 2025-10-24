@@ -1,0 +1,88 @@
+# USDT Trading Configuration
+# Automatic USDT trading with AI confirmation (40% AI weight)
+
+usdtTrading:
+  enabled: true
+  minUSDTBalance: 10.0  # Minimum USDT balance to start trading
+  maxPositionSize: 100.0  # Maximum position size in USDT
+  maxLeverage: 10  # Maximum leverage allowed
+  
+  # AI Confirmation Settings
+  aiConfirmation:
+    enabled: true
+    aiWeight: 0.4  # 40% AI decision weight
+    humanWeight: 0.6  # 60% human/technical decision weight
+    minConfidenceThreshold: 0.6  # Minimum confidence for AI approval
+    maxRiskScore: 0.7  # Maximum risk score for approval
+  
+  # Supported Trading Pairs (all USDT pairs)
+  supportedPairs:
+    - "BTCUSDT"
+    - "ETHUSDT" 
+    - "BNBUSDT"
+    - "ADAUSDT"
+    - "SOLUSDT"
+    - "MATICUSDT"
+    - "DOTUSDT"
+    - "AVAXUSDT"
+    - "LINKUSDT"
+    - "UNIUSDT"
+    - "LTCUSDT"
+    - "BCHUSDT"
+    - "XRPUSDT"
+    - "TRXUSDT"
+    - "EOSUSDT"
+  
+  # Risk Management
+  riskManagement:
+    maxRiskPerTrade: 2.5  # 2.5% max risk per trade
+    stopLossPercentage: 2.5  # 2.5% stop loss
+    takeProfitPercentage: 5.0  # 5% take profit
+    maxDailyRisk: 10.0  # 10% max daily risk
+    maxConsecutiveLosses: 3  # Stop trading after 3 consecutive losses
+  
+  # Trading Logic
+  tradingLogic:
+    # Position sizing based on confidence
+    confidenceMultiplier: 8.0  # Higher confidence = higher leverage (max 8x)
+    minConfidenceForTrade: 0.5  # Minimum confidence to consider trade
+    volatilityAdjustment: true  # Adjust for market volatility
+    
+    # Leverage calculation
+    leverageCalculation:
+      baseLeverage: 1.0
+      confidenceMultiplier: 8.0
+      maxLeverage: 10.0
+      positionSizeReduction: 0.7  # Reduce leverage for large positions
+  
+  # AI Confirmation Settings
+  aiConfirmationSettings:
+    # Alignment scoring
+    directionMatchWeight: 0.8  # Weight for direction alignment
+    confidenceBonus: 0.1  # Bonus for high AI confidence
+    signalStrengthBonus: 0.1  # Bonus for strong signal strength
+    
+    # Risk assessment
+    leverageRiskFactor: 0.1  # Risk factor per leverage point
+    volatilityRiskFactor: 2.0  # Risk factor for market volatility
+    confidenceRiskFactor: 0.3  # Risk factor for low confidence
+    
+    # Decision thresholds
+    minAlignmentScore: 0.4  # Minimum alignment score
+    minFinalConfidence: 0.6  # Minimum final confidence
+    highConfidenceThreshold: 0.7  # High confidence threshold
+    lowRiskThreshold: 0.3  # Low risk threshold
+  
+  # Logging and Monitoring
+  logging:
+    logAllDecisions: true  # Log all AI confirmation decisions
+    logRejections: true  # Log rejected trades with reasons
+    logExecutions: true  # Log successful trade executions
+    detailedReasoning: true  # Include detailed reasoning in logs
+  
+  # Performance Monitoring
+  monitoring:
+    trackSuccessRate: true  # Track AI confirmation success rate
+    trackRejectionReasons: true  # Track why trades are rejected
+    performanceMetrics: true  # Calculate performance metrics
+    alertOnHighRisk: true  # Alert on high-risk trades

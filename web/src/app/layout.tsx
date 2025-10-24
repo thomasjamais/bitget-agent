@@ -2,7 +2,9 @@ import type { Metadata } from "next";
 import { ModeIndicator } from "@/components/ModeIndicator";
 import { WalletConnect } from "@/components/WalletConnect";
 import { ErrorNotifications } from "@/components/ErrorNotifications";
+import { ThemeToggle } from "@/components/ThemeToggle";
 import { NotificationProvider } from "@/contexts/NotificationContext";
+import { WebSocketProvider } from "@/contexts/WebSocketContext";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -25,46 +27,57 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className="dark">
-      <body className="min-h-screen bg-gray-900 text-white font-sans">
-        <NotificationProvider>
-          <div className="flex h-screen overflow-hidden">
-            {/* Sidebar Navigation */}
-            <nav className="w-64 bg-gray-800 border-r border-gray-700 flex-shrink-0">
-              <div className="p-6">
-                <h1 className="text-xl font-bold text-white mb-4">
-                  🚀 Bitget Bot
-                </h1>
+    <html lang="en" suppressHydrationWarning>
+      <body className="min-h-screen bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-white font-sans">
+        <WebSocketProvider url="ws://localhost:8081/ws">
+          <NotificationProvider>
+            <div className="flex h-screen">
+              {/* Sidebar Navigation */}
+              <nav className="w-64 bg-gray-800 dark:bg-gray-800 border-r border-gray-700 dark:border-gray-700 flex-shrink-0 overflow-y-auto">
+                <div className="p-6">
+                  <h1 className="text-xl font-bold text-white dark:text-white mb-4">
+                    🚀 Bitget Bot
+                  </h1>
 
-                {/* Mode Indicator */}
-                <div className="mb-6">
-                  <ModeIndicator />
+                  {/* Mode Indicator */}
+                  <div className="mb-6">
+                    <ModeIndicator />
+                  </div>
+
+                  {/* Wallet Connect */}
+                  <div className="mb-6">
+                    <WalletConnect />
+                  </div>
+
+                  {/* Theme Toggle */}
+                  <div className="mb-6">
+                    <ThemeToggle />
+                  </div>
+
+                  <div className="space-y-2">
+                    <NavLink href="/" icon="📊" label="Dashboard" />
+                    <NavLink href="/portfolio" icon="💰" label="Portfolio" />
+                    <NavLink href="/trades" icon="⚡" label="Active Trades" />
+                    <NavLink
+                      href="/ai-analysis"
+                      icon="🤖"
+                      label="AI Analysis"
+                    />
+                    <NavLink href="/history" icon="📈" label="Trade History" />
+                    <NavLink href="/settings" icon="⚙️" label="Settings" />
+                    <NavLink href="/logs" icon="📝" label="Logs" />
+                  </div>
                 </div>
+              </nav>
 
-                {/* Wallet Connect */}
-                <div className="mb-6">
-                  <WalletConnect />
-                </div>
+              {/* Main Content */}
+              <main className="flex-1 overflow-y-auto">{children}</main>
+            </div>
 
-                <div className="space-y-2">
-                  <NavLink href="/" icon="📊" label="Dashboard" />
-                  <NavLink href="/portfolio" icon="💰" label="Portfolio" />
-                  <NavLink href="/trades" icon="⚡" label="Active Trades" />
-                  <NavLink href="/ai-analysis" icon="🤖" label="AI Analysis" />
-                  <NavLink href="/history" icon="📈" label="Trade History" />
-                  <NavLink href="/settings" icon="⚙️" label="Settings" />
-                  <NavLink href="/logs" icon="📝" label="Logs" />
-                </div>
-              </div>
-            </nav>
-
-            {/* Main Content */}
-            <main className="flex-1 overflow-auto">{children}</main>
-          </div>
-
-          {/* Error Notifications */}
-          <ErrorNotifications />
-        </NotificationProvider>
+            {/* Error Notifications */}
+            <ErrorNotifications />
+          </NotificationProvider>
+        </WebSocketProvider>
       </body>
     </html>
   );
@@ -82,7 +95,7 @@ function NavLink({
   return (
     <a
       href={href}
-      className="flex items-center space-x-3 px-3 py-2 rounded-lg text-gray-300 hover:text-white hover:bg-gray-700 transition-colors duration-200"
+      className="flex items-center space-x-3 px-3 py-2 rounded-lg text-gray-300 dark:text-gray-300 hover:text-white dark:hover:text-white hover:bg-gray-700 dark:hover:bg-gray-700 transition-colors duration-200"
     >
       <span className="text-lg">{icon}</span>
       <span className="text-sm font-medium">{label}</span>

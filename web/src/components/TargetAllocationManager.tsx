@@ -1,33 +1,38 @@
-'use client';
+"use client";
 
-import React, { useState, useEffect } from 'react';
-import { Portfolio, Allocation } from '@/types/bot';
+import React, { useState, useEffect } from "react";
+import { Portfolio, Allocation } from "@/types/bot";
 
 interface TargetAllocationManagerProps {
   portfolio?: Portfolio;
   onUpdateAllocation?: (symbol: string, percentage: number) => void;
 }
 
-export function TargetAllocationManager({ 
-  portfolio, 
-  onUpdateAllocation 
+export function TargetAllocationManager({
+  portfolio,
+  onUpdateAllocation,
 }: TargetAllocationManagerProps) {
   const [isEditing, setIsEditing] = useState(false);
-  const [tempAllocations, setTempAllocations] = useState<{[key: string]: number}>({});
+  const [tempAllocations, setTempAllocations] = useState<{
+    [key: string]: number;
+  }>({});
   const [isSaving, setIsSaving] = useState(false);
 
   // Initialize temp allocations from portfolio data
   useEffect(() => {
     if (portfolio?.allocations && !isEditing) {
-      const temp: {[key: string]: number} = {};
-      portfolio.allocations.forEach(alloc => {
+      const temp: { [key: string]: number } = {};
+      portfolio.allocations.forEach((alloc) => {
         temp[alloc.symbol] = alloc.target * 100; // Convert to percentage
       });
       setTempAllocations(temp);
     }
   }, [portfolio?.allocations, isEditing]);
 
-  const totalAllocation = Object.values(tempAllocations).reduce((sum, val) => sum + val, 0);
+  const totalAllocation = Object.values(tempAllocations).reduce(
+    (sum, val) => sum + val,
+    0
+  );
 
   const handleStartEditing = () => {
     setIsEditing(true);
@@ -37,8 +42,8 @@ export function TargetAllocationManager({
     setIsEditing(false);
     // Reset temp allocations
     if (portfolio?.allocations) {
-      const temp: {[key: string]: number} = {};
-      portfolio.allocations.forEach(alloc => {
+      const temp: { [key: string]: number } = {};
+      portfolio.allocations.forEach((alloc) => {
         temp[alloc.symbol] = alloc.target * 100;
       });
       setTempAllocations(temp);
@@ -47,7 +52,7 @@ export function TargetAllocationManager({
 
   const handleSaveAllocations = async () => {
     if (Math.abs(totalAllocation - 100) > 0.1) {
-      alert('Total allocation must equal 100%');
+      alert("Total allocation must equal 100%");
       return;
     }
 
@@ -55,12 +60,15 @@ export function TargetAllocationManager({
     try {
       // Update each allocation via API
       for (const [symbol, percentage] of Object.entries(tempAllocations)) {
-        const response = await fetch(`http://localhost:8080/api/portfolio/allocation/${symbol}`, {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ percentage: percentage / 100 }) // Convert back to decimal
-        });
-        
+        const response = await fetch(
+          `http://localhost:8081/api/portfolio/allocation/${symbol}`,
+          {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ percentage: percentage / 100 }), // Convert back to decimal
+          }
+        );
+
         if (!response.ok) {
           const error = await response.json();
           throw new Error(error.error || `Failed to update ${symbol}`);
@@ -72,9 +80,9 @@ export function TargetAllocationManager({
       }
 
       setIsEditing(false);
-      alert('✅ Target allocations updated successfully!');
+      alert("✅ Target allocations updated successfully!");
     } catch (error) {
-      console.error('Failed to update allocations:', error);
+      console.error("Failed to update allocations:", error);
       alert(`❌ Failed to update allocations: ${error}`);
     } finally {
       setIsSaving(false);
@@ -82,27 +90,35 @@ export function TargetAllocationManager({
   };
 
   const handleAllocationChange = (symbol: string, value: number) => {
-    setTempAllocations(prev => ({
+    setTempAllocations((prev) => ({
       ...prev,
-      [symbol]: Math.max(0, Math.min(100, value))
+      [symbol]: Math.max(0, Math.min(100, value)),
     }));
   };
 
   const getStatusColor = (allocation: Allocation) => {
     switch (allocation.status) {
-      case 'BALANCED': return 'text-green-600 bg-green-50 border-green-200';
-      case 'OVERWEIGHT': return 'text-orange-600 bg-orange-50 border-orange-200';
-      case 'UNDERWEIGHT': return 'text-blue-600 bg-blue-50 border-blue-200';
-      default: return 'text-gray-600 bg-gray-50 border-gray-200';
+      case "BALANCED":
+        return "text-green-600 bg-green-50 border-green-200";
+      case "OVERWEIGHT":
+        return "text-orange-600 bg-orange-50 border-orange-200";
+      case "UNDERWEIGHT":
+        return "text-blue-600 bg-blue-50 border-blue-200";
+      default:
+        return "text-gray-600 bg-gray-50 border-gray-200";
     }
   };
 
   const getStatusIcon = (status: string) => {
     switch (status) {
-      case 'BALANCED': return '🟢';
-      case 'OVERWEIGHT': return '🔴';
-      case 'UNDERWEIGHT': return '🟡';
-      default: return '⚪';
+      case "BALANCED":
+        return "🟢";
+      case "OVERWEIGHT":
+        return "🔴";
+      case "UNDERWEIGHT":
+        return "🟡";
+      default:
+        return "⚪";
     }
   };
 
@@ -146,7 +162,7 @@ export function TargetAllocationManager({
                 disabled={Math.abs(totalAllocation - 100) > 0.1 || isSaving}
                 className="px-3 py-1 bg-green-500 hover:bg-green-600 text-white rounded text-sm disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {isSaving ? 'Saving...' : 'Save'}
+                {isSaving ? "Saving..." : "Save"}
               </button>
             </>
           )}
@@ -169,7 +185,9 @@ export function TargetAllocationManager({
               <div className="flex items-center gap-4 text-sm">
                 <span>Current: {(allocation.current * 100).toFixed(1)}%</span>
                 {!isEditing ? (
-                  <span className="font-medium">Target: {(allocation.target * 100).toFixed(1)}%</span>
+                  <span className="font-medium">
+                    Target: {(allocation.target * 100).toFixed(1)}%
+                  </span>
                 ) : (
                   <div className="flex items-center gap-2">
                     <span>Target:</span>
@@ -179,13 +197,20 @@ export function TargetAllocationManager({
                       max="100"
                       step="0.1"
                       value={tempAllocations[allocation.symbol] || 0}
-                      onChange={(e) => handleAllocationChange(allocation.symbol, Number(e.target.value))}
+                      onChange={(e) =>
+                        handleAllocationChange(
+                          allocation.symbol,
+                          Number(e.target.value)
+                        )
+                      }
                       className="w-16 px-2 py-1 text-center border border-gray-300 rounded text-sm"
                     />
                     <span>%</span>
                   </div>
                 )}
-                <span>Deviation: {(allocation.deviation * 100).toFixed(1)}%</span>
+                <span>
+                  Deviation: {(allocation.deviation * 100).toFixed(1)}%
+                </span>
               </div>
             </div>
             {allocation.value && (
@@ -200,13 +225,18 @@ export function TargetAllocationManager({
       {isEditing && (
         <div className="mt-4 p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
           <div className="text-sm text-gray-600 dark:text-gray-400">
-            Total Allocation: <span className={`font-medium ${Math.abs(totalAllocation - 100) > 0.1 ? 'text-red-600' : 'text-green-600'}`}>
+            Total Allocation:{" "}
+            <span
+              className={`font-medium ${
+                Math.abs(totalAllocation - 100) > 0.1
+                  ? "text-red-600"
+                  : "text-green-600"
+              }`}
+            >
               {totalAllocation.toFixed(1)}%
             </span>
             {Math.abs(totalAllocation - 100) > 0.1 && (
-              <span className="text-red-600 ml-2">
-                ⚠️ Must equal 100%
-              </span>
+              <span className="text-red-600 ml-2">⚠️ Must equal 100%</span>
             )}
           </div>
         </div>

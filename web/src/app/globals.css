@@ -2,6 +2,113 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Enhanced Global Styles */
+@layer base {
+  * {
+    @apply border-border;
+  }
+  
+  body {
+    @apply bg-background text-foreground;
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
+}
+
+@layer components {
+  /* Enhanced Trading Card */
+  .trading-card {
+    @apply bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-md transition-all duration-300 backdrop-blur-sm;
+  }
+  
+  /* Enhanced Metric Card */
+  .metric-card {
+    @apply bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-lg transition-all duration-300 backdrop-blur-sm;
+  }
+  
+  /* Enhanced Button Styles */
+  .btn-primary {
+    @apply bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-medium px-4 py-2 rounded-lg transition-all duration-200 shadow-sm hover:shadow-md;
+  }
+  
+  .btn-secondary {
+    @apply bg-gradient-to-r from-gray-100 to-gray-200 dark:from-gray-700 dark:to-gray-800 hover:from-gray-200 hover:to-gray-300 dark:hover:from-gray-600 dark:hover:to-gray-700 text-gray-900 dark:text-white font-medium px-4 py-2 rounded-lg transition-all duration-200 shadow-sm hover:shadow-md;
+  }
+  
+  /* Enhanced Status Indicators */
+  .status-success {
+    @apply bg-gradient-to-r from-green-500 to-green-600 text-white;
+  }
+  
+  .status-warning {
+    @apply bg-gradient-to-r from-yellow-500 to-yellow-600 text-white;
+  }
+  
+  .status-danger {
+    @apply bg-gradient-to-r from-red-500 to-red-600 text-white;
+  }
+  
+  /* Enhanced Text Colors */
+  .text-primary {
+    @apply text-gray-900 dark:text-white;
+    line-height: 1.5;
+  }
+  
+  .text-secondary {
+    @apply text-gray-600 dark:text-gray-300;
+    line-height: 1.5;
+  }
+  
+  .text-muted {
+    @apply text-gray-500 dark:text-gray-400;
+    line-height: 1.5;
+  }
+  
+  /* Enhanced Trading Colors */
+  .trading-green {
+    @apply text-green-600 dark:text-green-400;
+  }
+  
+  .trading-red {
+    @apply text-red-600 dark:text-red-400;
+  }
+  
+  /* Enhanced Animations */
+  .fade-in {
+    animation: fadeIn 0.3s ease-in-out;
+  }
+  
+  .slide-in {
+    animation: slideIn 0.3s ease-out;
+  }
+  
+  .pulse-glow {
+    animation: pulseGlow 2s ease-in-out infinite;
+  }
+  
+  /* Enhanced Hover Effects */
+  .hover-lift {
+    @apply transition-transform duration-200 hover:-translate-y-1;
+  }
+  
+  .hover-glow {
+    @apply transition-shadow duration-200 hover:shadow-lg;
+  }
+  
+  /* Enhanced Grid Layouts */
+  .grid-responsive {
+    @apply grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4;
+  }
+  
+  /* Enhanced Form Elements */
+  .form-input {
+    @apply w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200;
+  }
+  
+  .form-select {
+    @apply w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200;
+  }
+}
+
 @layer base {
   :root {
     --background: 0 0% 100%;
@@ -54,13 +161,31 @@
     @apply border-border;
   }
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground font-sans antialiased;
+  }
+  
+  /* Enhanced typography */
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-semibold tracking-tight;
+  }
+  
+  /* Better text contrast for dark mode */
+  .text-gray-400 {
+    @apply text-gray-300;
+  }
+  
+  .text-gray-500 {
+    @apply text-gray-300;
+  }
+  
+  .text-gray-600 {
+    @apply text-gray-200;
   }
 }
 
 /* Custom scrollbar */
 ::-webkit-scrollbar {
-  width: 6px;
+  width: 8px;
 }
 
 ::-webkit-scrollbar-track {
@@ -75,19 +200,335 @@
   @apply bg-gray-500 dark:bg-gray-500;
 }
 
-/* Trading specific styles */
+/* Professional trading card styles */
 .trading-card {
-  @apply bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700;
+  @apply bg-white dark:bg-gray-800 rounded-xl shadow-xl border border-gray-200 dark:border-gray-700;
+  @apply backdrop-blur-sm bg-opacity-95 dark:bg-opacity-95;
+  @apply transition-all duration-300 ease-in-out;
 }
 
+.trading-card:hover {
+  @apply shadow-2xl border-gray-300 dark:border-gray-600;
+  @apply transform scale-[1.02];
+}
+
+/* Enhanced color schemes for better visibility */
 .trading-green {
-  @apply text-green-600 dark:text-green-400;
+  @apply text-green-600 dark:text-green-400 font-semibold;
 }
 
 .trading-red {
-  @apply text-red-600 dark:text-red-400;
+  @apply text-red-600 dark:text-red-400 font-semibold;
 }
 
+.trading-yellow {
+  @apply text-yellow-600 dark:text-yellow-400 font-semibold;
+}
+
+.trading-blue {
+  @apply text-blue-600 dark:text-blue-400 font-semibold;
+}
+
+/* Professional status indicators */
+.status-indicator {
+  @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium;
+}
+
+.status-success {
+  @apply bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300;
+}
+
+.status-error {
+  @apply bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300;
+}
+
+.status-warning {
+  @apply bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300;
+}
+
+.status-info {
+  @apply bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300;
+}
+
+/* Enhanced table styles */
+.professional-table {
+  @apply w-full text-sm;
+}
+
+.professional-table thead {
+  @apply bg-gray-50 dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700;
+}
+
+.professional-table th {
+  @apply px-4 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider;
+}
+
+.professional-table td {
+  @apply px-4 py-4 text-sm text-gray-900 dark:text-gray-100;
+}
+
+.professional-table tbody tr {
+  @apply border-b border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors;
+}
+
+/* Professional metric cards */
+.metric-card {
+  @apply bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-900;
+  @apply rounded-xl shadow-lg border border-gray-200 dark:border-gray-700;
+  @apply p-6 transition-all duration-300;
+}
+
+.metric-card:hover {
+  @apply shadow-xl border-gray-300 dark:border-gray-600;
+  @apply transform translate-y-[-2px];
+}
+
+/* Enhanced text visibility */
+.text-primary {
+  @apply text-gray-900 dark:text-white font-semibold;
+}
+
+.text-secondary {
+  @apply text-gray-700 dark:text-gray-200;
+}
+
+.text-muted {
+  @apply text-gray-600 dark:text-gray-300;
+}
+
+/* Enhanced text readability - removed duplicate definitions */
+
+/* Ensure all text is visible and readable */
+* {
+  line-height: 1.5;
+}
+
+/* Better contrast for better readability - using standard Tailwind classes */
+
+/* Ensure proper scrolling and content visibility */
+html, body {
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+
+/* Better spacing for content visibility */
+.space-y-6 > * + * {
+  margin-top: 1.5rem;
+}
+
+.space-y-4 > * + * {
+  margin-top: 1rem;
+}
+
+.space-y-2 > * + * {
+  margin-top: 0.5rem;
+}
+
+/* Ensure cards are fully visible */
+.trading-card, .metric-card {
+  min-height: fit-content;
+  overflow: visible;
+}
+
+/* Better mobile responsiveness */
+@media (max-width: 768px) {
+  .trading-card, .metric-card {
+    margin-bottom: 1rem;
+  }
+  
+  .text-sm {
+    font-size: 0.875rem;
+    line-height: 1.4;
+  }
+  
+  .text-xs {
+    font-size: 0.75rem;
+    line-height: 1.3;
+  }
+}
+
+.text-accent {
+  @apply text-blue-600 dark:text-blue-400;
+}
+
+/* Professional animations */
 .pulse-indicator {
-  @apply animate-pulse-soft;
+  @apply animate-pulse;
+}
+
+.fade-in {
+  @apply animate-fade-in duration-500;
+}
+
+.slide-in {
+  @apply animate-slide-in duration-500;
+}
+
+/* Custom animations */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(1rem);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateX(-1rem);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes pulseGlow {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.4);
+  }
+  50% {
+    box-shadow: 0 0 0 10px rgba(59, 130, 246, 0);
+  }
+}
+
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-0.5rem);
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+.animate-fade-in {
+  animation: fade-in 0.3s ease-out;
+}
+
+.animate-slide-in {
+  animation: slide-in 0.3s ease-out;
+}
+
+/* Responsive improvements */
+@media (max-width: 768px) {
+  .trading-card {
+    @apply rounded-lg shadow-md;
+  }
+  
+  .metric-card {
+    @apply p-4;
+  }
+  
+  /* Mobile typography adjustments */
+  h1 {
+    @apply text-2xl;
+  }
+  
+  h2 {
+    @apply text-xl;
+  }
+  
+  h3 {
+    @apply text-lg;
+  }
+  
+  /* Mobile spacing adjustments */
+  .space-y-8 > * + * {
+    @apply mt-6;
+  }
+  
+  .space-y-6 > * + * {
+    @apply mt-4;
+  }
+  
+  /* Mobile table improvements */
+  .professional-table {
+    @apply text-xs;
+  }
+  
+  .professional-table th,
+  .professional-table td {
+    @apply px-2 py-2;
+  }
+  
+  /* Mobile card adjustments */
+  .metric-card {
+    @apply p-4;
+  }
+  
+  /* Mobile grid improvements */
+  .grid {
+    @apply gap-4;
+  }
+}
+
+/* Tablet improvements */
+@media (min-width: 768px) and (max-width: 1024px) {
+  .trading-card {
+    @apply rounded-xl shadow-lg;
+  }
+  
+  .metric-card {
+    @apply p-5;
+  }
+  
+  /* Tablet typography */
+  h1 {
+    @apply text-3xl;
+  }
+  
+  h2 {
+    @apply text-2xl;
+  }
+  
+  /* Tablet spacing */
+  .space-y-8 > * + * {
+    @apply mt-6;
+  }
+}
+
+/* Large screen optimizations */
+@media (min-width: 1280px) {
+  .trading-card {
+    @apply rounded-xl shadow-xl;
+  }
+  
+  .metric-card {
+    @apply p-6;
+  }
+  
+  /* Enhanced hover effects for large screens */
+  .trading-card:hover {
+    @apply transform scale-[1.02] shadow-2xl;
+  }
+  
+  .metric-card:hover {
+    @apply transform translate-y-[-4px] shadow-2xl;
+  }
+}
+
+/* Print styles */
+@media print {
+  .trading-card,
+  .metric-card {
+    @apply shadow-none border border-gray-300;
+  }
+  
+  .trading-card:hover,
+  .metric-card:hover {
+    @apply transform-none;
+  }
 }
